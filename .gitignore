@@ -1,0 +1,19 @@
+# Ambientes Virtuais e Dependências
+venv/
+.env
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+
+# Dados Locais e Vetoriais (NUNCA comitar)
+qdrant_data/
+neo4j_data/
+postgres_data/
+
+# Cofre e Segredos
+*.pem
+*.key
+*.p12
+*.crt
+vault_keys/
