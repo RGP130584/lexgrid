@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  # Memória Longa: Armazenamento Relacional Transacional
+  postgres:
+    image: postgres:16-alpine
+    container_name: lexgrid-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: lexadmin
+      POSTGRES_PASSWORD: lexpassword_secure_2026
+      POSTGRES_DB: lexgrid_core
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  # Memória Semântica: Banco Vetorial para RAG de Jurisprudência
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: lexgrid-qdrant
+    restart: always
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - qdrant_data:/qdrant/storage
+
+  # Memória Curta: Cache de Sessão de Alta Performance
+  dragonfly:
+    image: 'docker.dragonflydb.io/dragonflydb/dragonfly'
+    container_name: lexgrid-dragonfly
+    restart: always
+    ports:
+      - "6379:6379"
+    # Dragonfly aceita os mesmos comandos do Redis, mas roda muito mais rápido
+    command: [--requirepass=dragonfly_secure_pass]
+
+volumes:
+  postgres_data:
+  qdrant_data:
