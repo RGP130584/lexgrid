@@ -1,0 +1,30 @@
+name: AI Security & Guardrails
+
+on:
+  pull_request:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
+
+jobs:
+  ai-governance:
+    name: AI Output & Prompt Guardrails
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install Dependencies
+        run: pip install -r requirements-dev.txt
+
+      - name: Run AI Code Guard
+        run: python scripts/quality/ai_code_guard.py
+
+      - name: Execute AI Penetration Tests
+        run: pytest tests/ai/

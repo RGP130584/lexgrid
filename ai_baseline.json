@@ -1,0 +1,11 @@
+{
+  "version": "1.0",
+  "enforcement_mode": "blocking",
+  "allowed_models": ["lexgrid-core", "ollama-llama3-local"],
+  "guardrails": {
+    "prompt_injection": true,
+    "pii_redaction": true,
+    "sandbox_execution": true
+  },
+  "retention_days": 90
+}

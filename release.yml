@@ -1,0 +1,37 @@
+name: Enterprise Release & Signing
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+  packages: write
+  id-token: write # Obrigatorio para Sigstore Cosign
+
+jobs:
+  release:
+    name: Sign & Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@v3.5.0
+
+      - name: Generate Tarball
+        run: tar -czvf lexgrid-core-${{ github.ref_name }}.tar.gz backend/ scripts/
+
+      - name: Sign Artifact (Cosign Keyless)
+        run: cosign sign-blob --yes lexgrid-core-${{ github.ref_name }}.tar.gz
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            lexgrid-core-${{ github.ref_name }}.tar.gz
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

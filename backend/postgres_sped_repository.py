@@ -20,8 +20,8 @@ class PostgresSpedRepository(SpedRepository):
             "dbname": "lexgrid_core",
             "user": "lexadmin",
             "password": db_password,
-            "host": "localhost",
-            "port": "5432"
+            "host": os.getenv("POSTGRES_HOST", "localhost"),
+            "port": os.getenv("POSTGRES_PORT", "55433")
         }
         self._init_db()
 

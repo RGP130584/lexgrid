@@ -1,46 +1,101 @@
-# Documento de Visão: Lexgrid — Versão 5.0 (Arquitetura, MCP & Segurança)
+# Plataforma corporativa e on-premise especializada em inteligência tributária e automação executiva focada na malha legislativa brasileira.
 
-**Data:** 16 de Maio de 2026  
-**Responsável:** Ricardo Gabriel  
+O LexGrid atua de forma autônoma (como CFO e CLO digitais) visando a recuperação massiva de créditos e a mineração de dados em obrigações estruturadas (SPED, ECD, ECF), preservando rigorosamente o sigilo corporativo. Trata-se de uma arquitetura baseada em governança, segurança fiduciária e execução 100% local, blindando as informações estratégicas da empresa sob o modelo AI-on-Premise.
 
-## 1. Introdução e Propósito
-Este documento detalha a visão estratégica, técnica e operacional do projeto Lexgrid (anteriormente TaxAI Brasil). O objetivo é estabelecer uma plataforma de inteligência corporativa e pessoal de alta performance, operando em regime 100% on-premise (local). O sistema atua como um CFO e CLO autônomo, focado na malha de conexões (Grid) e na legislação (Lex) do complexo ecossistema tributário brasileiro.
+## 3. Arquitetura em Camadas
+- **Camada 1 (Qualidade & CI Local):** Conjunto estático e veloz de validações (Ruff, Black, Mypy, Bandit) e proteções proativas contra injeção de código inseguro ou vazamento de segredos, independentemente do Docker estar ativo.
+- **Camada 2 (Zelador Dev):** Auto-healing e gerenciamento inteligente da infraestrutura.
+- **Camada 3 (CI/CD Militar):** Pipeline Zero Trust hospedada no GitHub Actions com SBOM.
+- **Camada 4 (AI Security & Governance):** Firewall de IA, Guardrails, PII Sanitization.
+- **Camada 5 (Auditoria, Observabilidade e Forensics):** SIEM nativo, Tracing Distribuído (OpenTelemetry), Digital Forensics e logs imutáveis.
+- **Camada 6 (Zero Trust & Cyber Defense):** Least Privilege, ABAC, Hardening de containers (read-only FS), HashiCorp Vault para secrets e mTLS.
+- **Camada 7 (Data Governance & Resilience):** Backup Automático, Disaster Recovery (RTO/RPO), Data Lineage, Purge LGPD e Validação de Integridade.
+- **Camada 8 (AI Ops & MLOps Governance):** Model Registry, Prompt Versioning, Drift Detection, Embeddings Poisoning Defense, AI Cost Tracking.
+- **Camada 9 (Core Backend):** API em FastAPI, LangChain, Agentes e integrações de negócio.
+- **Camada 10 (Red Team & Chaos Engineering):** Validação de Resiliência, Prompt Injection automatizado, Simulação de Ransomware e Docker Breakout Tests.
 
-## 2. Descrição do Problema e Oportunidade
-O cenário tributário e jurídico brasileiro é caracterizado por burocracia extrema e layouts engessados (SPED). Empresas perdem bilhões em créditos não recuperados. O Lexgrid resolve isso com processamento local soberano, automação executiva e OSINT profundo.
+> **Novidade (MVP Etapa 1 & 2):** O "CNPJ Enrichment Engine" e o "Opportunity Engine" foram implementados. Juntos, recebem CNPJs, enriquecem os dados cadastrais, e cruzam regras tributárias complexas para gerar um ranking de Oportunidades Financeiras com potencial executivo, score e Explainability.
 
-## 3. Arquitetura do Ecossistema (Core Engine)
-A arquitetura segue o conceito de "Sleeper Build", blindada e padronizada pelo Model Context Protocol (MCP).
+## 4. Estrutura do Projeto
+```text
+lexgrid/
+│
+├── app/
+│   ├── api/
+│   │   ├── routers/      # Rotas FastAPI isoladas
+│   │   └── schemas/      # Validadores e representações Pydantic
+│   ├── modules/          # Domínios de negócio (cnpj, tax, energy, etc)
+│   ├── services/         # Integrações (ai, scraping, enrichment, rag, ocr)
+│   ├── engines/          # Motores Inteligentes (opportunity_engine, tax_engine)
+│   ├── repositories/     # Adaptadores de Banco de Dados e Cache
+│   ├── models/           # DTOs, value_objects e entities DDD
+│   ├── core/             # Configurações, Segurança e Logging Globais
+│   └── utils/
+│
+├── scripts/              # Ferramentas independentes e auxiliares
+│   ├── dev/
+│   ├── security/
+│   ├── zelador/          # Agent autônomo de DevSecOps e infra
+│   ├── migration/
+│   ├── backup/
+│   ├── seed/
+│   ├── testing/
+│   └── observability/
+│
+├── infrastructure/       # Configurações para deploy isolado e infra on-prem
+│   ├── docker/
+│   ├── postgres/
+│   ├── qdrant/
+│   ├── vault/
+│   └── grafana/
+│
+├── data/                 # Raw data, backups, snapshots (ignorados no git)
+├── knowledge/            # Bases de conhecimento tributárias, docs e pdfs (RAG)
+├── reports/              # Saídas de auditoria e geração de relatórios
+│
+├── tests/
+│   ├── unit/
+│   ├── integration/
+│   ├── e2e/
+│   ├── security/
+│   ├── ai/
+│   └── performance/
+│
+├── docs/                 # Documentação de Arquitetura, API e Modelagem
+├── .github/
+│   ├── workflows/
+│   └── CODEOWNERS
+│
+├── docker-compose.yml    # Root entrypoint para Infra Estruturada
+├── pyproject.toml        # Configuração das dependências (Ruff, MyPy)
+├── README.md
+└── .env.example
+```
 
-| Componente | Tecnologia | Função Estratégica |
-| :--- | :--- | :--- |
-| **Gateway Backend** | FastAPI (Python) | Micro-framework de alta velocidade e TDD obrigatório. |
-| **Protocolo de Ferramentas** | Model Context Protocol (MCP) | Padroniza a comunicação da IA com APIs e bases locais. |
-| **Orquestração** | Temporal Server + LangGraph | Gestão de fluxos de trabalho entre os agentes especialistas. |
-| **Bancos de Dados** | Qdrant / PostgreSQL / DragonflyDB | Armazenamento vetorial, relacional e cache em memória. |
+## 5. Como Rodara
 
-## 4. Módulos de Inteligência Detalhados
-- **Módulo Fiscal (O CFO Autônomo):** Recuperação de ativos (TUST/TUSD) e auditoria de arquivos magnéticos do governo via ingestão segura.
-- **Módulo Jurídico e Societário (O CLO Autônomo):** Análise de risco, descoberta de malhas societárias e estruturação patrimonial fiduciária.
+```
 
-## 5. Aceleradores Estratégicos e Arsenal Open-Source
-### 5.1 Base Global de Agentes (Infraestrutura)
-- **mcp-server-builder & c-level-advisor:** Geração automática de MCPs e injeção de persona executiva.
-- **Prism Scanner:** Auditoria de segurança local contra código malicioso.
+## 6. Como Desenvolver
+1. Crie seu virtual environment na pasta raiz e instale as dependências: `pip install -r requirements-dev.txt`
+2. Habilite a esteira de desenvolvimento segura (Camada 1):
+```bash
+pre-commit install
+```
 
-### 5.2 Arsenal Nacional e Deep OSINT Fiscal
-- **sped-br/python-sped:** Biblioteca injetada via MCP para o Agente CFO realizar a ingestão, leitura e validação autônoma de arquivos SPED.
-- **SINARC:** Motor de OSINT utilizando teoria dos grafos para desenhar relações societárias a partir de CNPJs.
-- **Crawl4AI + mcp-crawl4ai-rag:** Web scraper imune a bloqueios, utilizado para extrair editais e portais governamentais.
+## 7. Como Executar Qualidade (Manualmente)
+Valida estaticamente segurança, imports, formatação e anomalias de AI, **sem** dependência do banco de dados:
+```
 
-## 6. Esteira de Desenvolvimento e Segurança (CI/CD Local)
-O desenvolvimento do Lexgrid é protegido por uma pipeline rigorosa que força validações antes da consolidação de qualquer código no repositório.
+Agente focado em auto-healing e telemetria profunda da Camada 3:
+```bash
+# Checkup estático manual:
+python scripts/zelador.py
 
-- **6.1 Fluxo de Validação (Pre-Commit Hook):** Validações de conexão (PostgreSQL, Dragonfly, Qdrant, Ollama), responsividade da API FastAPI e verificação de vazamento de credenciais.
-- **6.2 Auditoria de Código via IA (ChatGPT Go):** Utilização do `SECURITY_REVIEW_PROMPT.md` para análise de vulnerabilidades OWASP Top 10 e cobertura de testes (> 85%).
-- **6.3 Controle Fiduciário:** O commit só é consolidado após a esteira aprovar todos os testes e o desenvolvedor inserir ativamente a aprovação manual.
-
-## 7. Roadmap de Implementação Atualizado
-**Fase 1:** Infraestrutura Core — VS Code, `.cline/rules`, containers (Postgres/Qdrant/Dragonfly) e ativação da Esteira de CI/CD. *(Concluído)*  
-**Fase 2:** O Motor Brasil — Ativação do Crawl4AI e integração do `python-sped` para leitura de obrigações acessórias. *(Concluído)*  
-**Fase 3:** Inteligência Societária — Implementação do SINARC para mapeamento de Holdings.
+# Executar em modo Daemon 24/7 (Recovery Activo):
+python scripts/zelador.py --daemon
+``
+## 10. Roadmap Evolutivo
+*   **Fase 1:** Arquitetura DevSecOps desacoplada (Camada 1 veloz). (Concluído)
+*   **Fase 2:** Integração do MCP SPED para consumo unificado.
+*   **Fase 3:** Refinamento do Agente Societário via Grafos no frontend cognitivo.

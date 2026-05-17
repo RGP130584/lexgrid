@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "lexgrid-core-engine": {
+      "command": "python",
+      "args": ["backend/main.py"],
+      "env": {
+        "ENV": "development",
+        "N8N_ENABLED": "true",
+        "PYTHONPATH": "backend"
+      }
+    }
+  }
+}

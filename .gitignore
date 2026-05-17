@@ -1,15 +1,22 @@
 # Ambientes Virtuais e Dependências
+.venv/
 venv/
 .env
+.env.*
 __pycache__/
 *.pyc
 .pytest_cache/
 .ruff_cache/
+*.log
 
 # Dados Locais e Vetoriais (NUNCA comitar)
 qdrant_data/
 neo4j_data/
 postgres_data/
+ollama_data/
+models/
+embeddings/
+qdrant_storage/
 
 # Cofre e Segredos
 *.pem
