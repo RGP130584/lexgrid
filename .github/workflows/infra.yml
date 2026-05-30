@@ -1,0 +1,41 @@
+name: Infrastructure & Readiness (Layer 2 Integration)
+
+on:
+  pull_request:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
+
+jobs:
+  infra-validation:
+    name: Docker Environment Validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Spin up Hardened Infrastructure
+        run: |
+          # Mapeia portas e sobe os servicos (Vault, Postgres, Qdrant, Dragonfly, Ollama)
+          docker compose -f docker-compose.yml up -d
+
+      - name: Verify Docker Status
+        run: docker ps -a
+
+      - name: Zelador Readiness Check (Layer 2)
+        # Utiliza o Zelador Dev recém implementado para verificar readiness e dependencias
+        run: python scripts/zelador/main.py --check
+
+      - name: Red Team - Ransomware & Breakout Simulation (Layer 6 & 10)
+        # Dispara o script que tenta escrever/criptografar dados na raiz do container
+        run: python lexgrid/ransomware_simulation.py
+
+      - name: Red Team - Prompt Injection Suite (Layer 4 & 10)
+        # Bateria de testes automatizados ofensivos contra o LLM Firewall
+        run: python lexgrid/injection_suite.py

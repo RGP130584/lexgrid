@@ -1,0 +1,49 @@
+name: Security & Supply Chain Audit
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  schedule:
+    - cron: '0 2 * * *' # Executa diariamente as 2 AM
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  offensive-security:
+    name: SAST, SCA & Secrets
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Run Trivy Vulnerability Scanner (FS)
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          ignore-unfixed: true
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Generate SBOM (Syft)
+        uses: anchore/sbom-action@v0
+        with:
+          format: spdx-json
+          output-file: security/sbom/lexgrid-sbom.json
+
+      - name: Scan SBOM (Grype)
+        uses: anchore/scan-action@v3
+        with:
+          sbom: security/sbom/lexgrid-sbom.json
+          fail-build: true
+          severity-cutoff: high
+
+      - name: Upload Security Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-reports
+          path: security/sbom/
