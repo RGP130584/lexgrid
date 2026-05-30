@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 version: '3.8'
 
 services:
@@ -104,3 +105,5 @@ volumes:
   postgres_data:
   qdrant_data:
   ollama_data:
+=======
+>>>>>>> 2a3d070 (chore: reestruturação de pastas, frontend e ativação da esteira pre-commit)

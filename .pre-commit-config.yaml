@@ -1,0 +1,35 @@
+repos:
+  # 1. Validações estáticas e detecção de credenciais (Substitui o checklist legado)
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: detect-private-key     # Verifica se chaves/credenciais foram hardcoded
+      - id: check-added-large-files
+
+  # 2. Linter e Formatador ultrarrápido (Garante a integridade do código e sintaxe do FastAPI)
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.4.4
+    hooks:
+      - id: ruff
+        args: [ --fix ]
+      - id: ruff-format
+
+  # 3. Teste de Infraestrutura Base (Substitui a chamada do test_db.py no hook legado)
+  - repo: local
+    hooks:
+      - id: lexgrid-test-db
+        name: LexGrid - Teste de DB (PostgreSQL & Qdrant)
+        entry: python test_db.py
+        language: system
+        pass_filenames: false      # Executa uma vez só por commit, independente dos arquivos
+        always_run: true           # Roda em todo commit
+
+  # 4. Shielded Architecture: Validação de Guardrails e Injeção de Código
+      - id: lexgrid-ai-guard
+        name: LexGrid - AI Code Guard (Prevenção de Injeção)
+        entry: python lexgrid/ai_code_guard.py
+        language: system
+        pass_filenames: false

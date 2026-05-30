@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Documento de Visão: Lexgrid — Versão 5.0 (Arquitetura, MCP & Segurança)
 
 **Data:** 16 de Maio de 2026  
@@ -44,3 +45,95 @@ O desenvolvimento do Lexgrid é protegido por uma pipeline rigorosa que força v
 **Fase 1:** Infraestrutura Core — VS Code, `.cline/rules`, containers (Postgres/Qdrant/Dragonfly) e ativação da Esteira de CI/CD. *(Concluído)*  
 **Fase 2:** O Motor Brasil — Ativação do Crawl4AI e integração do `python-sped` para leitura de obrigações acessórias. *(Concluído)*  
 **Fase 3:** Inteligência Societária — Implementação do SINARC para mapeamento de Holdings.
+=======
+# 🛡️ LexGrid - Corporate AI & Motor de Enriquecimento
+
+O **LexGrid** é uma plataforma corporativa avançada focada em **Inteligência de CNPJ** e **Oportunidades Tributárias (SPED)**, suportada por uma arquitetura de IA local e blindada sob os mais rígidos princípios de segurança.
+
+---
+
+## 📐 Arquitetura do Sistema
+
+O projeto foi concebido utilizando uma arquitetura conteinerizada (*Docker*), baseada em microsserviços e **Zero Trust**.
+
+| Componente | Tecnologia | Porta Host | Função |
+| :--- | :--- | :--- | :--- |
+| **Frontend Cognitivo** | Next.js 14, React, Tailwind | `3003` | Painel Executivo do LexGrid. |
+| **API Backend** | FastAPI (Python 3.10) | `8003` | Motor central, Clean Architecture e fluxos de IA. |
+| **Cofre de Segredos** | HashiCorp Vault | `8203` | HSM em Software para injeção dinâmica de senhas. |
+| **Memória Longa** | PostgreSQL 16 | `55433` | Armazenamento relacional e transacional. |
+| **Memória Semântica** | Qdrant | `56333` | Banco vetorial para RAG (Recuperação de Informação). |
+| **Memória Curta** | Dragonfly | `56379` | Cache de altíssima performance (compatível com Redis). |
+| **Motor de IA Local** | Ollama | `51434` | Execução de LLMs open-source 100% On-Premise. |
+
+---
+
+## 🔒 Shielded Architecture (Segurança em 1º Lugar)
+
+O LexGrid adota estritamente os princípios do **Shielded Architecture Template**:
+- **Zero Trust & Least Privilege:** Nenhum container roda como `root`. Aplicação e Front end rodam com usuários restritos (`lexgrid:lexgrid`).
+- **Hardening de Kernel:** Todos os containers possuem extirpação de capacidades (`cap_drop: ALL`) e prevenção de escalonamento (`no-new-privileges:true`).
+- **Prevenção OWASP:** Políticas de CORS restritas (sem wildcard `*`) no backend e limitação de rotas.
+- **Integração Contínua Blindada:** Pipeline com 8 fases no GitHub Actions incluindo *Secret Scanning* (Gitleaks), *Container Scan* (Trivy), e *SAST* (Bandit).
+
+Para ler a política de arquitetura oficial completa, consulte: `docs/manual/secure-architecture.md`.
+
+---
+
+## 🚀 Como Executar o Projeto Localmente
+
+### 1. Pré-requisitos
+- Docker e Docker Compose instalados.
+- WSL2 configurado (para usuários de Windows).
+- Python 3.10 (opcional, para testes locais e *pre-commits*).
+
+### 2. Subindo a Infraestrutura
+Na raiz do projeto, construa e inicie os containers em segundo plano:
+
+```bash
+docker compose up -d --build
+```
+
+### 3. Acessando os Serviços
+- **Dashboard Web (Next.js):** http://localhost:3003
+- **Documentação Interativa da API (Swagger):** http://localhost:8003/docs
+- **Interface do Vault:** http://localhost:8203 (Token local de dev: `lexgrid_temp_dev_token`)
+
+### 4. Modo de Desenvolvimento (Hot-Reload)
+A infraestrutura está configurada para mapear os arquivos locais de código-fonte para dentro dos containers. 
+Qualquer alteração em `lexgrid/` (Python) ou em `frontend/` (Next.js) será recarregada automaticamente na API e no Front end, sem a necessidade de reiniciar o Docker.
+
+---
+
+## 🧪 Testes e Validação de Infraestrutura
+
+O LexGrid conta com scripts rigorosos para testar a comunicação entre as diferentes camadas de memória (*Relacional e Semântica*). Para executá-los em seu ambiente local usando o interpretador do seu host:
+
+```bash
+# Crie e ative seu ambiente virtual Python
+python -m venv .venv
+source .venv/Scripts/activate  # (No Windows PowerShell)
+
+# Instale as dependências de desenvolvimento
+pip install -r requirements-dev.txt
+
+# Execute o validador de Banco de Dados e Vetorial
+python test_db.py
+```
+
+---
+
+## 📑 Estrutura de Diretórios Principal
+
+```text
+lexgrid/
+├── frontend/          # Aplicação Web (Next.js, TailwindCSS)
+├── app/               # Regras de Negócio e Rotas da API Backend (FastAPI)
+├── tests/             # Suíte de testes unitários e de integração
+├── ci.yml, infra.yml  # Workflows automatizados de CI/CD e Qualidade
+├── docker-compose.yml # Malha de serviços e infraestrutura local segura
+└── main.py            # Ponto de entrada da API Backend
+```
+
+> *Desenvolvido para máxima resiliência corporativa. Nunca confie. Sempre verifique.*
+>>>>>>> 2a3d070 (chore: reestruturação de pastas, frontend e ativação da esteira pre-commit)
