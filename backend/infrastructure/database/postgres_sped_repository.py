@@ -3,7 +3,7 @@ import json
 import os
 from domain.entities.sped import SpedFile
 from domain.repositories.sped_repository import SpedRepository
-from vault import vault_manager
+from core.vault import vault_manager
 
 
 class PostgresSpedRepository(SpedRepository):

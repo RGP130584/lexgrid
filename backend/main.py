@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 from fastapi import FastAPI
 from api.main_router import api_router
 from core.config import settings
@@ -11,5 +10,3 @@ app = FastAPI(
 
 # Inclui todas as rotas do sistema centralizadas no main_router
 app.include_router(api_router)
-=======
->>>>>>> 2a3d070 (chore: reestruturação de pastas, frontend e ativação da esteira pre-commit)
