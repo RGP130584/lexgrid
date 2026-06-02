@@ -1,6 +1,5 @@
 from domain.entities.sped import SpedFile, SpedRecord
-from sped.declaracoes.icmsipi import EFD_ICMS_IPI
-
+from sped import EFD_ICMS_IPI
 
 class SpedIngestionUseCase:
     def __init__(self, repository=None):

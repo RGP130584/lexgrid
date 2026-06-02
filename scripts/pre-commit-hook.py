@@ -57,10 +57,10 @@ def main():
 
     # 3. Validação de Banco de Dados e Infraestrutura
     # Testa as conexões mTLS e integridade do Postgres e Qdrant
-    if os.path.exists('backend/test_db.py'):
-        run_check([sys.executable, 'backend/test_db.py'], "Testes de Integridade do Banco de Dados")
+    if os.path.exists('scripts/test_db.py'):
+        run_check([sys.executable, 'scripts/test_db.py'], "Testes de Integridade do Banco de Dados")
     else:
-        print(f"{Colors.WARNING}[!] Aviso: backend/test_db.py não encontrado. Pulando teste de BD.{Colors.ENDC}")
+        print(f"{Colors.WARNING}[!] Aviso: scripts/test_db.py não encontrado. Pulando teste de BD.{Colors.ENDC}")
 
     # 4. Checagem Linter e Anti-Bloat (Ruff)
     run_check(['ruff', 'check', 'backend/'], "Auditoria de Código Limpo (Ruff)")

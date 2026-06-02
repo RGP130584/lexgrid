@@ -2,7 +2,7 @@ from fastapi import APIRouter
 from api.routes import health
 from api.routes import sped
 from api.routes import mcp_routes
-import osint
+from api.routes import osint
 
 api_router = APIRouter()
 api_router.include_router(health.router, tags=["Health"])

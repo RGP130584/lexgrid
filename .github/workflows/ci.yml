@@ -16,7 +16,7 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
-        
+
       - name: Phase 1 - Secret Scanning (Gitleaks)
         uses: gitleaks/gitleaks-action@v2
         env:
@@ -46,7 +46,7 @@ jobs:
 
       - name: Run PyTest & Coverage
         run: |
-          pytest tests/ --cov=backend/ --cov=scripts/ --cov-report=xml
+          pytest lexgrid/backend/tests/ --cov=lexgrid/backend/ --cov=scripts/ --cov-report=xml
           
       - name: Upload Coverage Artifact
         uses: actions/upload-artifact@v4

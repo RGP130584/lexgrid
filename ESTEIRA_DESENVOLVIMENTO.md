@@ -39,7 +39,7 @@ Pipeline automatizado que força validações de segurança, testes de banco de 
 ## Componentes
 
 ### 1. **test_db.py** - Validação de Banco de Dados
-Localização: `backend/test_db.py`
+Localização: `scripts/test_db.py`
 
 Testa:
 - ✓ Conexão PostgreSQL
@@ -49,7 +49,7 @@ Testa:
 
 **Execução manual:**
 ```bash
-python backend/test_db.py
+python scripts/test_db.py
 ```
 
 ### 2. **pre-commit-hook.py** - Automação de Validação
@@ -186,10 +186,10 @@ python scripts/pre-commit-hook.py
 ### Erro: "Testes de banco de dados falharam"
 ```bash
 # Verificar Docker containers rodando
-docker compose -f backend/docker-compose.yml up -d
+docker compose -f docker-compose.yml up -d
 
 # Reexecutar testes
-python backend/test_db.py
+python scripts/test_db.py
 ```
 
 ### Erro: "FastAPI nao respondeu"
@@ -213,7 +213,7 @@ Mensagem aparece: **"Commit bloqueado com ressalvas"**
 
 ```bash
 # Executar testes manualmente
-python backend/test_db.py
+python scripts/test_db.py
 
 # Rodar hook manualmente
 python scripts/pre-commit-hook.py

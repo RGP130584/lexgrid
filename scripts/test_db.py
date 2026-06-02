@@ -110,7 +110,7 @@ def main():
         print(f"[AVISO] Servicos com problemas: {', '.join(failed)}")
         print("\nAtenção: Alguns servicos nao responderam.")
         print("Verifique se os containers Docker estao rodando:")
-        print("  docker compose -f backend/docker-compose.yml up -d")
+        print("  docker compose -f docker-compose.yml up -d")
         return 1
 
 
