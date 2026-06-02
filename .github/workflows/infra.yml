@@ -23,7 +23,7 @@ jobs:
       - name: Spin up Hardened Infrastructure
         run: |
           # Mapeia portas e sobe os servicos (Vault, Postgres, Qdrant, Dragonfly, Ollama)
-          docker compose -f docker-compose.yml config
+          docker compose -f docker-compose.yml up -d
 
       - name: Verify Docker Status
         run: docker ps -a

@@ -94,6 +94,40 @@ services:
     security_opt:
       - no-new-privileges:true
 
+  # 6. API Backend (Gateway FastAPI)
+  backend:
+    build:
+      context: ./lexgrid/backend
+      dockerfile: Dockerfile
+    container_name: lexgrid_backend
+    restart: always
+    ports:
+      - "8003:8000" # Expose internally map port 8000 to 8003
+    volumes:
+      - ./lexgrid/backend:/app
+    environment:
+      - POSTGRES_PASSWORD=lexpassword_secure_2026
+    networks:
+      - lexgrid_secure_net
+    depends_on:
+      - postgres
+      - vault
+      - qdrant
+
+  # 7. Frontend Cognitivo (Next.js / React)
+  frontend:
+    build:
+      context: ./lexgrid/frontend
+      dockerfile: Dockerfile
+    container_name: lexgrid_frontend
+    restart: always
+    ports:
+      - "3003:3000" # Expose internally map port 3000 to 3003
+    volumes:
+      - ./lexgrid/frontend:/app
+    networks:
+      - lexgrid_secure_net
+
 networks:
   lexgrid_secure_net:
     driver: bridge

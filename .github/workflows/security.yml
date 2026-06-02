@@ -39,7 +39,7 @@ jobs:
         uses: anchore/scan-action@v3
         with:
           sbom: security/sbom/lexgrid-sbom.json
-          fail-build: false
+          fail-build: true
           severity-cutoff: high
 
       - name: Upload Security Artifacts
