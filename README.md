@@ -1,139 +1,96 @@
-<<<<<<< HEAD
-# Documento de Visão: Lexgrid — Versão 5.0 (Arquitetura, MCP & Segurança)
+# 🛡️ LexGrid - Visão de Produto, Arquitetura & Motor de Enriquecimento
 
-**Data:** 16 de Maio de 2026  
-**Responsável:** Ricardo Gabriel  
+O **LexGrid** é uma plataforma corporativa e *on-premise* de alta performance voltada para **Inteligência de CNPJ**, **Auditoria de Conformidade (SPED)** e **Mapeamento de Oportunidades Tributárias**, operando sob uma infraestrutura de IA local e blindada por princípios de segurança rígidos.
 
-## 1. Introdução e Propósito
-Este documento detalha a visão estratégica, técnica e operacional do projeto Lexgrid (anteriormente TaxAI Brasil). O objetivo é estabelecer uma plataforma de inteligência corporativa e pessoal de alta performance, operando em regime 100% on-premise (local). O sistema atua como um CFO e CLO autônomo, focado na malha de conexões (Grid) e na legislação (Lex) do complexo ecossistema tributário brasileiro.
-
-## 2. Descrição do Problema e Oportunidade
-O cenário tributário e jurídico brasileiro é caracterizado por burocracia extrema e layouts engessados (SPED). Empresas perdem bilhões em créditos não recuperados. O Lexgrid resolve isso com processamento local soberano, automação executiva e OSINT profundo.
-
-## 3. Arquitetura do Ecossistema (Core Engine)
-A arquitetura segue o conceito de "Sleeper Build", blindada e padronizada pelo Model Context Protocol (MCP).
-
-| Componente | Tecnologia | Função Estratégica |
-| :--- | :--- | :--- |
-| **Gateway Backend** | FastAPI (Python) | Micro-framework de alta velocidade e TDD obrigatório. |
-| **Protocolo de Ferramentas** | Model Context Protocol (MCP) | Padroniza a comunicação da IA com APIs e bases locais. |
-| **Orquestração** | Temporal Server + LangGraph | Gestão de fluxos de trabalho entre os agentes especialistas. |
-| **Bancos de Dados** | Qdrant / PostgreSQL / DragonflyDB | Armazenamento vetorial, relacional e cache em memória. |
-
-## 4. Módulos de Inteligência Detalhados
-- **Módulo Fiscal (O CFO Autônomo):** Recuperação de ativos (TUST/TUSD) e auditoria de arquivos magnéticos do governo via ingestão segura.
-- **Módulo Jurídico e Societário (O CLO Autônomo):** Análise de risco, descoberta de malhas societárias e estruturação patrimonial fiduciária.
-
-## 5. Aceleradores Estratégicos e Arsenal Open-Source
-### 5.1 Base Global de Agentes (Infraestrutura)
-- **mcp-server-builder & c-level-advisor:** Geração automática de MCPs e injeção de persona executiva.
-- **Prism Scanner:** Auditoria de segurança local contra código malicioso.
-
-### 5.2 Arsenal Nacional e Deep OSINT Fiscal
-- **sped-br/python-sped:** Biblioteca injetada via MCP para o Agente CFO realizar a ingestão, leitura e validação autônoma de arquivos SPED.
-- **SINARC:** Motor de OSINT utilizando teoria dos grafos para desenhar relações societárias a partir de CNPJs.
-- **Crawl4AI + mcp-crawl4ai-rag:** Web scraper imune a bloqueios, utilizado para extrair editais e portais governamentais.
-
-## 6. Esteira de Desenvolvimento e Segurança (CI/CD Local)
-O desenvolvimento do Lexgrid é protegido por uma pipeline rigorosa que força validações antes da consolidação de qualquer código no repositório.
-
-- **6.1 Fluxo de Validação (Pre-Commit Hook):** Validações de conexão (PostgreSQL, Dragonfly, Qdrant, Ollama), responsividade da API FastAPI e verificação de vazamento de credenciais.
-- **6.2 Auditoria de Código via IA (ChatGPT Go):** Utilização do `SECURITY_REVIEW_PROMPT.md` para análise de vulnerabilidades OWASP Top 10 e cobertura de testes (> 85%).
-- **6.3 Controle Fiduciário:** O commit só é consolidado após a esteira aprovar todos os testes e o desenvolvedor inserir ativamente a aprovação manual.
-
-## 7. Roadmap de Implementação Atualizado
-**Fase 1:** Infraestrutura Core — VS Code, `.cline/rules`, containers (Postgres/Qdrant/Dragonfly) e ativação da Esteira de CI/CD. *(Concluído)*  
-**Fase 2:** O Motor Brasil — Ativação do Crawl4AI e integração do `python-sped` para leitura de obrigações acessórias. *(Concluído)*  
-**Fase 3:** Inteligência Societária — Implementação do SINARC para mapeamento de Holdings.
-=======
-# 🛡️ LexGrid - Corporate AI & Motor de Enriquecimento
-
-O **LexGrid** é uma plataforma corporativa avançada focada em **Inteligência de CNPJ** e **Oportunidades Tributárias (SPED)**, suportada por uma arquitetura de IA local e blindada sob os mais rígidos princípios de segurança.
+O sistema atua de forma autônoma como um **CFO e CLO Digital**, realizando o cruzamento inteligente de obrigações acessórias, enquadramentos regulatórios e bases de dados do governo para otimizar a carga tributária de empresas sob o modelo de soberania de dados (*AI-on-Premise*).
 
 ---
 
-## 📐 Arquitetura do Sistema
+## 📐 Arquitetura do Sistema e Serviços
 
-O projeto foi concebido utilizando uma arquitetura conteinerizada (*Docker*), baseada em microsserviços e **Zero Trust**.
+O ecossistema é conteinerizado em microsserviços seguros via *Docker*, organizados da seguinte forma:
 
-| Componente | Tecnologia | Porta Host | Função |
+| Componente | Tecnologia | Porta Host | Função Estratégica |
 | :--- | :--- | :--- | :--- |
-| **Frontend Cognitivo** | Next.js 14, React, Tailwind | `3003` | Painel Executivo do LexGrid. |
-| **API Backend** | FastAPI (Python 3.10) | `8003` | Motor central, Clean Architecture e fluxos de IA. |
-| **Cofre de Segredos** | HashiCorp Vault | `8203` | HSM em Software para injeção dinâmica de senhas. |
-| **Memória Longa** | PostgreSQL 16 | `55433` | Armazenamento relacional e transacional. |
-| **Memória Semântica** | Qdrant | `56333` | Banco vetorial para RAG (Recuperação de Informação). |
-| **Memória Curta** | Dragonfly | `56379` | Cache de altíssima performance (compatível com Redis). |
-| **Motor de IA Local** | Ollama | `51434` | Execução de LLMs open-source 100% On-Premise. |
+| **Frontend Cognitivo** | Next.js 14, React, Tailwind CSS | `3003` | Painel Executivo de Oportunidades e Simulador Comparativo. |
+| **API Backend Gateway** | FastAPI (Python 3.10) | `8003` | Motor de Clean Architecture, processamento cognitivo e rotas MCP. |
+| **Cofre de Segredos** | HashiCorp Vault | `8203` | HSM em Software para injeção dinâmica de senhas em memória RAM. |
+| **Memória Longa Relacional**| PostgreSQL 16 (Hardened) | `55433` | Armazenamento de logs estruturados, cadastros e obrigações. |
+| **Memória Semântica** | Qdrant | `56333` | Banco de dados vetorial para contextualização semântica (RAG). |
+| **Memória Curta (Cache)** | DragonflyDB | `56379` | Cache em memória de alta performance compatível com Redis. |
+| **Motor de IA Local** | Ollama | `51434` | Execução local de LLMs open-source (Qwen-Coder/Nomic-Embed). |
 
 ---
 
-## 🔒 Shielded Architecture (Segurança em 1º Lugar)
+## 🔒 Shielded Architecture (Segurança e Zero Trust)
 
-O LexGrid adota estritamente os princípios do **Shielded Architecture Template**:
-- **Zero Trust & Least Privilege:** Nenhum container roda como `root`. Aplicação e Front end rodam com usuários restritos (`lexgrid:lexgrid`).
-- **Hardening de Kernel:** Todos os containers possuem extirpação de capacidades (`cap_drop: ALL`) e prevenção de escalonamento (`no-new-privileges:true`).
-- **Prevenção OWASP:** Políticas de CORS restritas (sem wildcard `*`) no backend e limitação de rotas.
-- **Integração Contínua Blindada:** Pipeline com 8 fases no GitHub Actions incluindo *Secret Scanning* (Gitleaks), *Container Scan* (Trivy), e *SAST* (Bandit).
-
-Para ler a política de arquitetura oficial completa, consulte: `docs/manual/secure-architecture.md`.
+O LexGrid implementa regras de governança e blindagem ativa:
+- **Least Privilege:** Os contêineres rodam sob usuários dedicados sem permissões administrativas (`lexgrid:lexgrid`).
+- **Hardening de Kernel:** Extirpação de capacidades de SO (`cap_drop: ALL`) e prevenção de privilégios (`no-new-privileges:true`).
+- **Políticas CORS e Ingestão:** Comunicação interna protegida por mTLS e regras rígidas de acesso e-CAC/PGFN.
+- **Validação de Qualidade (Camada 1):** Pre-commit hooks e validações estáticas independentes antes do envio ao repositório git.
 
 ---
 
-## 🚀 Como Executar o Projeto Localmente
+## 🚀 Módulos e Funcionalidades
+
+1. **Oportunidades & Fomentos (CFO/CLO Autônomo)**:
+   - Mapeamento dinâmico de recursos não reembolsáveis (FINEP, EMBRAPII, CNPq, FAPs estaduais).
+   - Dicionário interativo com link oficial do portal de cada edital, passo a passo para submissão e lista de projetos elegíveis sugeridos.
+   - Identificação de oportunidades de redução (créditos de ICMS, energia - TUST/TUSD, agro e PIS/COFINS monofásicos).
+2. **Simulador Tributário Comparativo**:
+   - Grade comparativa em valores monetários reais (R$) entre Simples Nacional, Lucro Presumido e Lucro Real.
+   - Validação automatizada contra impeditivos legais em **100% dos CNAEs secundários** do CNPJ pesquisado.
+   - Planejamento tributário imediato com ações administrativas de redução fiscal aplicáveis hoje.
+3. **Análise da Nova Reforma Tributária**:
+   - Parecer técnico emitido sob a ótica de um contador especialista em direito tributário.
+   - Tabela comparativa de carga nominal Pré vs. Pós Reforma (IBS, CBS e Imposto Seletivo).
+   - Plano de preparação contábil para o período híbrido (2026-2033).
+4. **Compliance, Riscos & Fontes**:
+   - Varredura e apresentação de débitos ativos consolidados junto à **Dívida Ativa da União (PGFN)**.
+   - Status de conexão ativa e auditoria das fontes de consulta governamentais federais e estaduais.
+
+---
+
+## ⚙️ Como Executar o Projeto Localmente
 
 ### 1. Pré-requisitos
 - Docker e Docker Compose instalados.
-- WSL2 configurado (para usuários de Windows).
-- Python 3.10 (opcional, para testes locais e *pre-commits*).
+- WSL2 configurado (caso esteja no Windows).
+- Python 3.10 ou superior.
 
-### 2. Subindo a Infraestrutura
-Na raiz do projeto, construa e inicie os containers em segundo plano:
-
+### 2. Inicialização dos Contêineres
+Na raiz do projeto, execute o build e a inicialização dos serviços em segundo plano:
 ```bash
 docker compose up -d --build
 ```
 
-### 3. Acessando os Serviços
-- **Dashboard Web (Next.js):** http://localhost:3003
-- **Documentação Interativa da API (Swagger):** http://localhost:8003/docs
-- **Interface do Vault:** http://localhost:8203 (Token local de dev: `lexgrid_temp_dev_token`)
-
-### 4. Modo de Desenvolvimento (Hot-Reload)
-A infraestrutura está configurada para mapear os arquivos locais de código-fonte para dentro dos containers. 
-Qualquer alteração em `lexgrid/` (Python) ou em `frontend/` (Next.js) será recarregada automaticamente na API e no Front end, sem a necessidade de reiniciar o Docker.
+### 3. URLs e Pontos de Acesso
+- **Dashboard Web (Frontend):** `http://localhost:3003`
+- **Documentação Interativa (Swagger Docs):** `http://localhost:8003/docs`
+- **Painel do Vault (Segredos):** `http://localhost:8203` (Token de dev local: `lexgrid_temp_dev_token`)
 
 ---
 
-## 🧪 Testes e Validação de Infraestrutura
+## 🧪 Suíte de Testes e Qualidade
 
-O LexGrid conta com scripts rigorosos para testar a comunicação entre as diferentes camadas de memória (*Relacional e Semântica*). Para executá-los em seu ambiente local usando o interpretador do seu host:
+O LexGrid possui uma esteira rigorosa para verificar e validar a integridade estrutural e segurança do código:
 
 ```bash
-# Crie e ative seu ambiente virtual Python
+# 1. Ativar ambiente virtual
 python -m venv .venv
-source .venv/Scripts/activate  # (No Windows PowerShell)
+source .venv/Scripts/activate
 
-# Instale as dependências de desenvolvimento
+# 2. Instalar dependências de dev
 pip install -r requirements-dev.txt
 
-# Execute o validador de Banco de Dados e Vetorial
+# 3. Rodar a esteira local de qualidade (Linting, Imports e AI-Guard)
+python lexgrid/run_quality_pipeline.py
+
+# 4. Executar smoke tests de banco de dados
 python test_db.py
+python test_endpoints.py
 ```
 
 ---
-
-## 📑 Estrutura de Diretórios Principal
-
-```text
-lexgrid/
-├── frontend/          # Aplicação Web (Next.js, TailwindCSS)
-├── app/               # Regras de Negócio e Rotas da API Backend (FastAPI)
-├── tests/             # Suíte de testes unitários e de integração
-├── ci.yml, infra.yml  # Workflows automatizados de CI/CD e Qualidade
-├── docker-compose.yml # Malha de serviços e infraestrutura local segura
-└── main.py            # Ponto de entrada da API Backend
-```
-
-> *Desenvolvido para máxima resiliência corporativa. Nunca confie. Sempre verifique.*
->>>>>>> 2a3d070 (chore: reestruturação de pastas, frontend e ativação da esteira pre-commit)
+> *Desenvolvido para resiliência e conformidade máxima no cenário contábil brasileiro.*
