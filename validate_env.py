@@ -2,8 +2,8 @@ import sys
 import os
 from pathlib import Path
 
-sys.path.append(str(Path(__file__).parent.parent.parent))
-from scripts.shared.logger import get_logger
+sys.path.append(str(Path(__file__).parent))
+from logger import get_logger
 
 logger = get_logger("ValidateEnv")
 

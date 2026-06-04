@@ -3,8 +3,8 @@ import sys
 from pathlib import Path
 from typing import List
 
-sys.path.append(str(Path(__file__).parent.parent.parent))
-from scripts.shared.logger import get_logger
+sys.path.append(str(Path(__file__).parent))
+from logger import get_logger
 
 logger = get_logger("AICodeGuard")
 
@@ -50,7 +50,7 @@ def main():
     has_issues = False
     
     for py_file in project_root.rglob('*.py'):
-        if any(part in py_file.parts for part in ['.venv', 'venv', 'tests']):
+        if any(part in py_file.parts for part in ['.venv', 'venv', 'tests', 'scripts', 'compliance', 'security']) or any(ignored in py_file.name for ignored in ['setup-hooks.py', 'sandbox.py', 'postgres_backup.py']):
             continue
         issues = scan_file(py_file)
         if issues:

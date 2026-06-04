@@ -24,3 +24,5 @@ qdrant_storage/
 *.p12
 *.crt
 vault_keys/
+.next/
+

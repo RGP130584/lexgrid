@@ -6,6 +6,6 @@ SERVICES_CONFIG = {
     "vault": {"container": "lexgrid_vault", "port": 8200}
 }
 
-COMPOSE_FILE_PATH = "backend/docker-compose.yml"
+COMPOSE_FILE_PATH = "docker-compose.yml"
 NETWORK_NAME = "lexgrid_secure_net"
 VOLUMES = ["postgres_data", "qdrant_data", "ollama_data"]

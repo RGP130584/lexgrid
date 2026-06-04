@@ -7,12 +7,18 @@ services:
     container_name: lexgrid_api
     restart: always
     ports:
-      - "127.0.0.1:8000:8000"
+      - "${LEXGRID_API_PORT:-8003}:8000"
+    volumes:
+      - .:/app
     environment:
       - DRAGONFLY_HOST=dragonfly
       - DRAGONFLY_PORT=6379
     networks:
       - lexgrid_secure_net
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
     depends_on:
       dragonfly:
         condition: service_healthy
@@ -26,14 +32,13 @@ services:
       VAULT_DEV_ROOT_TOKEN_ID: "lexgrid_temp_dev_token" # Apenas para o setup inicial
       VAULT_DEV_LISTEN_ADDRESS: "0.0.0.0:8200"
     ports:
-      - "127.0.0.1:${VAULT_PORT:-8200}:8200"
+      - "${VAULT_PORT:-8203}:8200"
     networks:
       - lexgrid_secure_net
     cap_drop:
       - ALL
     security_opt:
       - no-new-privileges:true
-    read_only: true
     tmpfs:
       - /vault/logs
     healthcheck:
@@ -53,7 +58,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-lexpassword_secure_2026}
       POSTGRES_DB: lexgrid_core
     ports:
-      - "127.0.0.1:${POSTGRES_PORT:-55433}:5432"
+      - "${POSTGRES_PORT:-55433}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - lexgrid_backups:/backups
@@ -85,8 +90,8 @@ services:
     container_name: lexgrid_qdrant
     restart: always
     ports:
-      - "127.0.0.1:${QDRANT_PORT:-56333}:6333"
-      - "127.0.0.1:${QDRANT_GRPC_PORT:-56334}:6334"
+      - "${QDRANT_PORT:-56333}:6333"
+      - "${QDRANT_GRPC_PORT:-56334}:6334"
     volumes:
       - qdrant_data:/qdrant/storage
       - lexgrid_snapshots:/snapshots
@@ -96,7 +101,6 @@ services:
       - ALL
     security_opt:
       - no-new-privileges:true
-    read_only: true
     tmpfs:
       - /tmp
     healthcheck:
@@ -112,7 +116,7 @@ services:
     container_name: lexgrid_dragonfly
     restart: always
     ports:
-      - "127.0.0.1:${DRAGONFLY_PORT:-56379}:6379"
+      - "${DRAGONFLY_PORT:-56379}:6379"
     command: [--requirepass=dragonfly_secure_pass]
     networks:
       - lexgrid_secure_net
@@ -128,13 +132,76 @@ services:
       retries: 5
       start_period: 5s
 
+  # 5. Motor de IA Local (Ollama Hardened)
+  ollama:
+    image: ollama/ollama:latest
+    container_name: lexgrid_ollama
+    restart: always
+    ports:
+      - "${OLLAMA_PORT:-51434}:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    networks:
+      - lexgrid_secure_net
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:11434/ || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  # ── ATUALIZADOR DE MODELOS DA IA (Auto-pull) ─────────────────
+  # Executado uma única vez após o Ollama subir e ficar saudável.
+  # Baixa e atualiza os modelos Qwen 3.6 e Nomic Embed Text automaticamente.
+  ollama-model-puller:
+    image: ollama/ollama:latest
+    container_name: lexgrid_ollama_puller
+    restart: "no"
+    entrypoint: [ "/bin/sh", "-c" ]
+    command: |
+      sh -c "
+      echo 'Aguardando o serviço Ollama iniciar...'
+      until curl -sf http://ollama:11434/ > /dev/null; do sleep 5; done
+      echo 'Ollama online! Baixando/atualizando modelo Qwen 3.6...'
+      ollama pull qwen3.6
+      echo 'Baixando/atualizando modelo de embeddings nomic-embed-text...'
+      ollama pull nomic-embed-text
+      echo 'Modelos atualizados com sucesso!'
+      "
+    environment:
+      - OLLAMA_HOST=http://ollama:11434
+    depends_on:
+      ollama:
+        condition: service_healthy
+    networks:
+      - lexgrid_secure_net
+
+  # 6. Frontend Cognitivo (Next.js - LexGrid Web)
+  lexgrid_frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: lexgrid_frontend
+    restart: always
+    ports:
+      - "${LEXGRID_FRONTEND_PORT:-3003}:3000"
+    networks:
+      - lexgrid_secure_net
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+
 networks:
   lexgrid_secure_net:
     driver: bridge
-    internal: true
 
 volumes:
   postgres_data:
   qdrant_data:
   lexgrid_backups:
   lexgrid_snapshots:
+  ollama_data:

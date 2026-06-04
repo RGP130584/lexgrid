@@ -22,69 +22,19 @@ def setup_git_hooks():
         print("Execute este script no diretorio raiz do projeto")
         return False
     
-    # Create universal pre-commit hook (Git standard, works in Git Bash on Windows)
-    pre_commit_sh = hooks_dir / "pre-commit"
-    pre_commit_sh_content = f"""#!/bin/bash
-# LexGrid Pre-Commit Hook (Universal)
-cd "{project_root}"
-python scripts/pre-commit-hook.py
-exit $?
-"""
-    
-    try:
-        with open(pre_commit_sh, 'w', newline='\n') as f:
-            f.write(pre_commit_sh_content)
-        # Try to make it executable (important for UNIX/WSL, no-op usually on pure Windows)
-        os.chmod(pre_commit_sh, 0o755)
-        print(f"[OK] Git hook universal criado: {pre_commit_sh}")
-    except Exception as e:
-        print(f"[ERRO] Falha ao criar hook universal: {e}")
-        return False
-
-    # Create pre-commit hook (Windows batch version)
-    pre_commit_bat = hooks_dir / "pre-commit.bat"
-    pre_commit_bat_content = f"""@echo off
-REM LexGrid Pre-Commit Hook
-cd "{project_root}"
-python scripts\\pre-commit-hook.py
-exit /b %ERRORLEVEL%
-"""
-    
-    try:
-        with open(pre_commit_bat, 'w') as f:
-            f.write(pre_commit_bat_content)
-        print(f"[OK] Git hook instalado: {pre_commit_bat}")
-    except Exception as e:
-        print(f"[ERRO] Falha ao criar hook: {e}")
-        return False
-    
-    # Also create PowerShell version
-    pre_commit_ps1 = hooks_dir / "pre-commit.ps1"
-    pre_commit_ps1_content = f"""# LexGrid Pre-Commit Hook
-cd "{project_root}"
-python scripts\\pre-commit-hook.py
-exit $LASTEXITCODE
-"""
-    
-    try:
-        with open(pre_commit_ps1, 'w') as f:
-            f.write(pre_commit_ps1_content)
-        print(f"[OK] PowerShell hook criado: {pre_commit_ps1}")
-    except Exception as e:
-        print(f"[ERRO] Falha ao criar hook PS1: {e}")
-        return False
-    
-    # Git require hook type configuration for Windows
+    print("[*] Instalando hooks via biblioteca pre-commit...")
     try:
         subprocess.run(
-            f'git config core.hooksPath "{hooks_dir}"',
+            "pre-commit install",
             shell=True,
             cwd=project_root,
-            capture_output=True
+            check=True
         )
-        print(f"[OK] Git configurado para usar hooks dinamicamente")
+        print(f"[OK] Git hooks instalados com sucesso via pre-commit")
     except Exception as e:
-        print(f"[AVISO] Falha ao configurar git hooks path: {e}")
+        print(f"[AVISO] Falha ao configurar git hooks: {e}")
+        print("        Verifique se o pacote 'pre-commit' esta instalado (pip install pre-commit).")
+        return False
     
     return True
 
