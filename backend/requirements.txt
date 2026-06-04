@@ -7,3 +7,6 @@ python-sped>=0.0.9
 psycopg2-binary>=2.9.9
 crawl4ai>=0.3.0
 hvac>=2.1.0
+redis>=7.4.0
+qdrant-client>=1.18.0
+requests>=2.31.0

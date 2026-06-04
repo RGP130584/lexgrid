@@ -8,15 +8,19 @@ print("=== App Routes ===")
 for route in app.routes:
     print(f"Path: {route.path}, Methods: {getattr(route, 'methods', 'N/A')}")
 
-print("\n=== Testing /api/models ===")
+print("\n=== Testing /health ===")
 from fastapi.testclient import TestClient
 client = TestClient(app)
 
-response = client.get("/api/models")
+response = client.get("/health")
 print(f"Status: {response.status_code}")
-print(f"Response: {json.dumps(response.json(), indent=2)[:500]}")
+print(f"Response: {json.dumps(response.json(), indent=2)}")
 
-response2 = client.post("/api/generate", json={"prompt": "test", "model": "qwen2.5-coder:7b"})
-print(f"\n=== Testing /api/generate ===")
+response2 = client.get("/api/v1/cnpj/00000000000191")
+print(f"\n=== Testing /api/v1/cnpj/00000000000191 ===")
 print(f"Status: {response2.status_code}")
-print(f"Response: {json.dumps(response2.json(), indent=2)[:500]}")
+try:
+    print(f"Response: {json.dumps(response2.json(), indent=2)[:1000]}")
+except Exception:
+    print(f"Response Text: {response2.text[:1000]}")
+

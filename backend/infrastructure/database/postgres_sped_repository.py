@@ -3,7 +3,7 @@ import json
 import os
 from domain.entities.sped import SpedFile
 from domain.repositories.sped_repository import SpedRepository
-from vault import vault_manager
+from core.vault import vault_manager
 
 
 class PostgresSpedRepository(SpedRepository):
@@ -20,8 +20,8 @@ class PostgresSpedRepository(SpedRepository):
             "dbname": "lexgrid_core",
             "user": "lexadmin",
             "password": db_password,
-            "host": os.getenv("POSTGRES_HOST", "localhost"),
-            "port": os.getenv("POSTGRES_PORT", "55433")
+            "host": "localhost",
+            "port": "5432"
         }
         self._init_db()
 

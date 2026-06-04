@@ -1,0 +1,177 @@
+services:
+  # 1. O Cofre de Segredos (HashiCorp Vault)
+  vault:
+    image: hashicorp/vault:1.15
+    container_name: lexgrid_vault
+    restart: always
+    environment:
+      VAULT_DEV_ROOT_TOKEN_ID: "lexgrid_temp_dev_token"
+      VAULT_DEV_LISTEN_ADDRESS: "0.0.0.0:8200"
+    ports:
+      - "${VAULT_PORT:-8203}:8200"
+    networks:
+      - lexgrid_secure_net
+
+  # 2. Banco Relacional (PostgreSQL Hardened)
+  postgres:
+    image: postgres:16-alpine
+    container_name: lexgrid_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: lexadmin
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-lexpassword_secure_2026}
+      POSTGRES_DB: lexgrid_core
+    ports:
+      - "${POSTGRES_PORT:-55433}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - lexgrid_secure_net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lexadmin -d lexgrid_core"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+  # 3. Banco Vetorial (Qdrant Hardened)
+  qdrant:
+    image: qdrant/qdrant:v1.9.0
+    container_name: lexgrid_qdrant
+    restart: always
+    ports:
+      - "${QDRANT_PORT:-56333}:6333"
+      - "${QDRANT_GRPC_PORT:-56334}:6334"
+    volumes:
+      - qdrant_data:/qdrant/storage
+    networks:
+      - lexgrid_secure_net
+
+  # 4. Memória Curta: Cache de Sessão de Alta Performance (Dragonfly Hardened)
+  dragonfly:
+    image: 'docker.dragonflydb.io/dragonflydb/dragonfly'
+    container_name: lexgrid_dragonfly
+    restart: always
+    ports:
+      - "${DRAGONFLY_PORT:-56379}:6379"
+    command: [--requirepass=dragonfly_secure_pass]
+    networks:
+      - lexgrid_secure_net
+
+  # 5. Inteligência Cognitiva: Modelos LLM Locais (Ollama)
+  ollama:
+    image: ollama/ollama:latest
+    container_name: lexgrid_ollama
+    restart: always
+    ports:
+      - "${OLLAMA_PORT:-51434}:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    networks:
+      - lexgrid_secure_net
+
+  # 5.5 Puller Automático de Modelos de IA
+  ollama-model-puller:
+    image: ollama/ollama:latest
+    container_name: lexgrid_ollama_puller
+    restart: "no"
+    entrypoint: [ "/bin/sh", "-c" ]
+    command: |
+      sh -c "
+      echo 'Aguardando o serviço Ollama iniciar...'
+      sleep 10
+      echo 'Baixando/atualizando modelo Qwen 3.6...'
+      ollama pull qwen3.6
+      echo 'Baixando/atualizando modelo de embeddings nomic-embed-text...'
+      ollama pull nomic-embed-text
+      echo 'Modelos atualizados com sucesso!'
+      "
+    environment:
+      - OLLAMA_HOST=http://ollama:11434
+    depends_on:
+      - ollama
+    networks:
+      - lexgrid_secure_net
+
+  # 6. API Backend Gateway (FastAPI)
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: lexgrid_backend
+    restart: always
+    ports:
+      - "${LEXGRID_API_PORT:-8003}:8000"
+    volumes:
+      - ./backend:/app
+      - ./lexgrid:/app/lexgrid
+    environment:
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=lexadmin
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-lexpassword_secure_2026}
+      - DRAGONFLY_HOST=dragonfly
+      - DRAGONFLY_PORT=6379
+      - DRAGONFLY_PASSWORD=dragonfly_secure_pass
+      - QDRANT_HOST=qdrant
+      - QDRANT_PORT=6333
+      - OLLAMA_HOST=http://ollama:11434
+      - PYTHONPATH=/app:/app/lexgrid
+    networks:
+      - lexgrid_secure_net
+    depends_on:
+      postgres:
+        condition: service_healthy
+      qdrant:
+        condition: service_started
+      vault:
+        condition: service_started
+      dragonfly:
+        condition: service_started
+
+  # 7. Frontend Cognitivo (Next.js - Porta 3003)
+  frontend:
+    build:
+      context: ./lexgrid
+      dockerfile: Dockerfile
+    container_name: lexgrid_frontend
+    restart: always
+    ports:
+      - "${LEXGRID_FRONTEND_PORT:-3003}:3000"
+    volumes:
+      - ./lexgrid/src:/app/src
+      - ./lexgrid/public:/app/public
+      - /app/node_modules
+    networks:
+      - lexgrid_secure_net
+    depends_on:
+      - backend
+
+  # 8. Prometheus (Observabilidade)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: lexgrid_prometheus
+    restart: always
+    ports:
+      - "9090:9090"
+    networks:
+      - lexgrid_secure_net
+
+  # 9. Grafana (Painel de Métricas)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: lexgrid_grafana
+    restart: always
+    ports:
+      - "3000:3000"
+    networks:
+      - lexgrid_secure_net
+
+networks:
+  lexgrid_secure_net:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  qdrant_data:
+  ollama_data:

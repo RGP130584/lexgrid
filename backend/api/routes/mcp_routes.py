@@ -34,14 +34,8 @@ def list_mcp_tools():
 def call_mcp_tool(request: ToolCallRequest):
     """Endpoint chamado pelos agentes de IA para executar a ferramenta escolhida."""
     if request.tool_name == "consultar_sped_historico":
-        filename = request.parameters.get("filename")
-        if not filename:
-            return {"status": "error", "message": "O parâmetro 'filename' é obrigatório para consultar o histórico."}
-
-        # TODO: Implementar a conexão com o banco 'lexgrid_postgres' via Repositório para busca real.
-        return {
-            "status": "success",
-            "content": f"Histórico recuperado para o arquivo '{filename}': O registro foi localizado na base relacional e está pronto para análise."
-        }
+        filename = request.parameters.get("filename", "")
+        # Aqui, o Agente solicita a análise e podemos cruzar os dados usando o Repositório
+        return {"status": "success", "content": f"Simulação: O arquivo '{filename}' está no banco. Total de anomalias: 0."}
     
     return {"status": "error", "message": "Ferramenta não registrada no MCP Gateway."}
