@@ -85,7 +85,7 @@ source .venv/Scripts/activate
 pip install -r requirements-dev.txt
 
 # 3. Rodar a esteira local de qualidade (Linting, Imports e AI-Guard)
-python lexgrid/run_quality_pipeline.py
+python scripts/quality/run_quality_pipeline.py
 
 # 4. Executar smoke tests de banco de dados
 python test_db.py

@@ -120,7 +120,7 @@ def verify_docker_containers():
 def verify_python_dependencies():
     """Check if required Python packages are available"""
     required_packages = [
-        'psycopg2-binary',
+        'psycopg2',
         'redis',
         'qdrant-client',
         'fastapi',

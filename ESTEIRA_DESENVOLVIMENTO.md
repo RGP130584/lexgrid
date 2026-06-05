@@ -39,7 +39,7 @@ Pipeline automatizado que força validações de segurança, testes de banco de 
 ## Componentes
 
 ### 1. **test_db.py** - Validação de Banco de Dados
-Localização: `backend/test_db.py`
+Localização: `test_db.py`
 
 Testa:
 - ✓ Conexão PostgreSQL
@@ -49,7 +49,7 @@ Testa:
 
 **Execução manual:**
 ```bash
-python backend/test_db.py
+python test_db.py
 ```
 
 ### 2. **pre-commit-hook.py** - Automação de Validação
@@ -74,7 +74,7 @@ Template para análise de segurança via AI:
 
 ### Passo 1: Instalar Git Hook Nativo
 ```bash
-cd c:\Users\Ricardo\Documents\projetos\LexGrid\lexgrid
+cd e:\documentos\projetos\LexGrid
 
 # Criar diretório de hooks (se não existir)
 mkdir -p .git\hooks
@@ -186,17 +186,17 @@ python scripts/pre-commit-hook.py
 ### Erro: "Testes de banco de dados falharam"
 ```bash
 # Verificar Docker containers rodando
-docker compose -f backend/docker-compose.yml up -d
+docker compose up -d
 
 # Reexecutar testes
-python backend/test_db.py
+python test_db.py
 ```
 
 ### Erro: "FastAPI nao respondeu"
 ```bash
 # Iniciar servidor
-cd lexgrid
-.\.venv\Scripts\python.exe -m uvicorn backend.main:app --host 127.0.0.1 --port 8000
+cd backend
+..\.venv\Scripts\python.exe -m uvicorn main:app --host 127.0.0.1 --port 8000
 ```
 
 ## Fluxo com Ressalvas
@@ -213,7 +213,7 @@ Mensagem aparece: **"Commit bloqueado com ressalvas"**
 
 ```bash
 # Executar testes manualmente
-python backend/test_db.py
+python test_db.py
 
 # Rodar hook manualmente
 python scripts/pre-commit-hook.py
@@ -227,5 +227,5 @@ git diff --cached --name-only
 
 ---
 
-**Última atualização:** 2026-05-16
+**Última atualização:** 2026-06-05
 **Responsável:** LexGrid DevOps
