@@ -1,13 +1,18 @@
-from fastapi import APIRouter, HTTPException, Request, UploadFile, File, Form
+from fastapi import APIRouter, HTTPException, Request, UploadFile, File, Form, Depends
 from app.api.schemas.cnpj_response import CNPJResponse
 from app.services.enrichment.cnpj_enrichment_service import CNPJEnrichmentService
 from app.core.security.rate_limit import check_rate_limit
 from app.engines.incentive_engine.sped_parser import SPEDParser
+from app.core.security.access_key import verify_access_key
 
 router = APIRouter()
 
 @router.get("/{cnpj}", response_model=CNPJResponse)
-async def analyze_cnpj(request: Request, cnpj: str):
+async def analyze_cnpj(
+    request: Request, 
+    cnpj: str,
+    access_key: str = Depends(verify_access_key)
+):
     check_rate_limit(request, limit=20, window=60)
     
     try:
@@ -21,7 +26,8 @@ async def analyze_cnpj(request: Request, cnpj: str):
 @router.post("/upload-sped", response_model=CNPJResponse)
 async def upload_sped(
     cnpj: str = Form(...),
-    file: UploadFile = File(...)
+    file: UploadFile = File(...),
+    access_key: str = Depends(verify_access_key)
 ):
     try:
         content = await file.read()

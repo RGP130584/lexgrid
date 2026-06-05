@@ -17,5 +17,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Inicializacao do banco de dados no startup
+@app.on_event("startup")
+async def startup_event():
+    from infrastructure.database.setup import init_database
+    init_database()
+
 # Inclui todas as rotas do sistema centralizadas no main_router
 app.include_router(api_router)
