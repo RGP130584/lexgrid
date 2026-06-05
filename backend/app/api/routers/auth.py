@@ -98,3 +98,47 @@ async def login_beta(payload: BetaLoginRequest):
         raise HTTPException(status_code=500, detail=f"Erro interno do servidor: {e}")
     finally:
         conn.close()
+
+@router.get("/admin-control/keys")
+async def list_keys():
+    try:
+        with get_db_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    SELECT id, key_hash, max_uses, current_uses, is_active, created_at 
+                    FROM access_keys 
+                    ORDER BY created_at DESC
+                    """
+                )
+                rows = cur.fetchall()
+                keys = []
+                for r in rows:
+                    keys.append({
+                        "id": r[0],
+                        "key_hash": r[1],
+                        "max_uses": r[2],
+                        "current_uses": r[3],
+                        "is_active": r[4],
+                        "created_at": r[5].isoformat() if r[5] else None
+                    })
+        return keys
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erro ao listar chaves: {e}")
+
+@router.post("/admin-control/keys/{key_id}/toggle")
+async def toggle_key(key_id: int):
+    try:
+        with get_db_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute("UPDATE access_keys SET is_active = NOT is_active WHERE id = %s RETURNING is_active", (key_id,))
+                res = cur.fetchone()
+                if not res:
+                    raise HTTPException(status_code=404, detail="Chave nao encontrada.")
+                new_state = res[0]
+            conn.commit()
+        return {"success": True, "is_active": new_state}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erro ao alternar status da chave: {e}")
