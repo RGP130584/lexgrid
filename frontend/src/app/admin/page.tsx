@@ -12,11 +12,14 @@ import {
   Search, 
   X, 
   Activity, 
-  TrendingUp, 
-  AlertTriangle,
   RotateCw,
   Eye,
-  EyeOff
+  EyeOff,
+  Lock,
+  User as UserIcon,
+  LogOut,
+  ShieldAlert,
+  AlertTriangle
 } from "lucide-react";
 
 interface AccessKey {
@@ -29,8 +32,15 @@ interface AccessKey {
 }
 
 export default function AdminDashboard() {
+  const [isAdminLoggedIn, setIsAdminLoggedIn] = useState<boolean>(false);
+  const [adminUser, setAdminUser] = useState("");
+  const [adminPassword, setAdminPassword] = useState("");
+  const [showAdminPassword, setShowAdminPassword] = useState(false);
+  const [loginError, setLoginError] = useState<string | null>(null);
+  const [loginSuccess, setLoginSuccess] = useState(false);
+
   const [keys, setKeys] = useState<AccessKey[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [generating, setGenerating] = useState(false);
@@ -59,8 +69,39 @@ export default function AdminDashboard() {
   };
 
   useEffect(() => {
-    fetchKeys();
+    const session = typeof window !== "undefined" ? localStorage.getItem("lexgrid_admin_auth") : null;
+    if (session === "true") {
+      setIsAdminLoggedIn(true);
+      fetchKeys();
+    }
   }, []);
+
+  const handleAdminLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoginError(null);
+    
+    const normalizedUser = adminUser.trim().toLowerCase();
+    
+    if (normalizedUser === "ricardo" && adminPassword === "LEX@123") {
+      setLoginSuccess(true);
+      setTimeout(() => {
+        localStorage.setItem("lexgrid_admin_auth", "true");
+        setIsAdminLoggedIn(true);
+        fetchKeys();
+        setLoginSuccess(false);
+      }, 1000);
+    } else {
+      setLoginError("Usuário ou senha incorretos.");
+    }
+  };
+
+  const handleAdminLogout = () => {
+    localStorage.removeItem("lexgrid_admin_auth");
+    setIsAdminLoggedIn(false);
+    setKeys([]);
+    setAdminUser("");
+    setAdminPassword("");
+  };
 
   const handleToggle = async (keyId: number) => {
     try {
@@ -121,8 +162,98 @@ export default function AdminDashboard() {
     k.key_hash.toLowerCase().includes(search.toLowerCase())
   );
 
+  // Login Gate
+  if (!isAdminLoggedIn) {
+    return (
+      <div className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center p-4 relative overflow-hidden font-sans">
+        {/* Restrictive ambient glows */}
+        <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-rose-500/10 rounded-full blur-[100px] pointer-events-none"></div>
+        <div className="absolute bottom-1/4 right-1/4 translate-x-1/2 translate-y-1/2 w-80 h-80 bg-violet-500/10 rounded-full blur-[100px] pointer-events-none"></div>
+
+        <div className="w-full max-w-md bg-slate-900/85 border border-slate-800 p-8 rounded-2xl shadow-2xl backdrop-blur-md relative z-10 space-y-6">
+          <div className="text-center space-y-2">
+            <div className="inline-flex p-3 bg-rose-500/10 border border-rose-500/20 text-rose-400 rounded-xl mb-2">
+              <ShieldAlert className="w-8 h-8 animate-pulse" />
+            </div>
+            <h2 className="text-2xl font-bold tracking-tight text-white">Painel Administrativo</h2>
+            <p className="text-sm text-slate-400">Autentique-se com suas credenciais para gerenciar o sistema.</p>
+          </div>
+
+          {loginSuccess ? (
+            <div className="p-4 bg-emerald-950/30 border border-emerald-500/30 text-emerald-300 rounded-xl text-center text-sm font-medium animate-pulse">
+              🔓 Acesso Autorizado! Carregando painel...
+            </div>
+          ) : (
+            <form onSubmit={handleAdminLogin} className="space-y-4">
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-slate-400 block ml-1">Usuário</label>
+                <div className="relative">
+                  <UserIcon className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input 
+                    type="text" 
+                    value={adminUser}
+                    onChange={(e) => {
+                      setAdminUser(e.target.value);
+                      setLoginError(null);
+                    }}
+                    placeholder="Nome de usuário"
+                    required
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-3 text-sm text-slate-200 placeholder-slate-700 focus:outline-none focus:border-rose-500 focus:ring-1 focus:ring-rose-500/20 transition-all text-white"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-slate-400 block ml-1">Senha</label>
+                <div className="relative">
+                  <Lock className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input 
+                    type={showAdminPassword ? "text" : "password"} 
+                    value={adminPassword}
+                    onChange={(e) => {
+                      setAdminPassword(e.target.value);
+                      setLoginError(null);
+                    }}
+                    placeholder="••••••••"
+                    required
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-10 py-3 text-sm text-slate-200 placeholder-slate-700 focus:outline-none focus:border-rose-500 focus:ring-1 focus:ring-rose-500/20 transition-all text-white"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowAdminPassword(!showAdminPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300"
+                  >
+                    {showAdminPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              {loginError && (
+                <p className="text-xs text-rose-400 text-center font-medium animate-shake">{loginError}</p>
+              )}
+              
+              <button 
+                type="submit" 
+                className="w-full py-3 bg-rose-600 hover:bg-rose-500 active:bg-rose-700 text-white font-semibold rounded-xl text-sm transition-all shadow-lg shadow-rose-600/10 border border-rose-500/25 flex items-center justify-center gap-2 hover:scale-[1.01] active:scale-[0.99] mt-2"
+              >
+                <span>Entrar no Painel</span>
+              </button>
+            </form>
+          )}
+
+          <div className="text-center pt-2 flex justify-between items-center text-[10px] font-mono text-slate-650">
+            <Link href="/" className="hover:text-slate-400 transition-colors flex items-center gap-1">
+              <ArrowLeft className="w-3 h-3" /> Voltar ao Dashboard
+            </Link>
+            <span className="tracking-wider uppercase">LexGrid Security Guard</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col relative overflow-hidden font-sans">
+    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col relative overflow-hidden font-sans animate-in fade-in duration-300">
       {/* Background gradients */}
       <div className="absolute top-0 left-1/4 -translate-x-1/2 w-[500px] h-[500px] bg-sky-500/5 rounded-full blur-[120px] pointer-events-none"></div>
       <div className="absolute bottom-0 right-1/4 translate-x-1/2 w-[500px] h-[500px] bg-violet-500/5 rounded-full blur-[120px] pointer-events-none"></div>
@@ -140,13 +271,23 @@ export default function AdminDashboard() {
               </span>
             </div>
           </div>
-          <Link 
-            href="/"
-            className="flex items-center gap-2 text-xs font-semibold text-slate-400 hover:text-white transition-colors bg-slate-900 border border-slate-800 px-3.5 py-2 rounded-xl hover:border-slate-700"
-          >
-            <ArrowLeft className="w-3.5 h-3.5" />
-            Voltar ao Dashboard
-          </Link>
+          
+          <div className="flex items-center gap-3">
+            <Link 
+              href="/"
+              className="flex items-center gap-2 text-xs font-semibold text-slate-400 hover:text-white transition-colors bg-slate-900 border border-slate-800 px-3.5 py-2 rounded-xl hover:border-slate-700"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              Dashboard Principal
+            </Link>
+            <button 
+              onClick={handleAdminLogout}
+              className="flex items-center gap-2 text-xs font-semibold text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 transition-colors bg-slate-900 border border-slate-800 hover:border-rose-950 px-3.5 py-2 rounded-xl"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              Sair
+            </button>
+          </div>
         </div>
       </header>
 
@@ -259,7 +400,7 @@ export default function AdminDashboard() {
                 placeholder="Buscar chave..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-850 rounded-xl pl-10 pr-4 py-2 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-slate-700 focus:ring-1 focus:ring-slate-800 transition-all"
+                className="w-full bg-slate-950 border border-slate-850 rounded-xl pl-10 pr-4 py-2 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-slate-700 focus:ring-1 focus:ring-slate-800 transition-all text-white"
               />
               {search && (
                 <button 
@@ -274,7 +415,7 @@ export default function AdminDashboard() {
             <div className="flex items-center gap-3 self-end sm:self-auto">
               <button
                 onClick={() => setShowSensitive(!showSensitive)}
-                className="p-2 bg-slate-950 border border-slate-850 hover:border-slate-850 hover:text-white rounded-xl text-slate-400 text-xs font-medium flex items-center gap-1.5 transition-all"
+                className="p-2 bg-slate-950 border border-slate-850 hover:border-slate-800 hover:text-white rounded-xl text-slate-400 text-xs font-medium flex items-center gap-1.5 transition-all"
                 title={showSensitive ? "Ocultar chaves" : "Mostrar chaves"}
               >
                 {showSensitive ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
@@ -283,7 +424,7 @@ export default function AdminDashboard() {
               
               <button
                 onClick={fetchKeys}
-                className="p-2 bg-slate-950 border border-slate-850 hover:border-slate-850 hover:text-white rounded-xl text-slate-400 text-xs font-medium flex items-center gap-1.5 transition-all"
+                className="p-2 bg-slate-950 border border-slate-850 hover:border-slate-800 hover:text-white rounded-xl text-slate-400 text-xs font-medium flex items-center gap-1.5 transition-all"
                 title="Atualizar Tabela"
               >
                 <RotateCw className="w-3.5 h-3.5" />
