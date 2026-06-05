@@ -1098,7 +1098,7 @@ export default function Dashboard() {
           <div className="space-y-1">
             <h1 className="text-3xl md:text-4xl font-extrabold flex items-center gap-3 tracking-tight bg-gradient-to-r from-sky-400 to-indigo-400 bg-clip-text text-transparent">
               <ShieldAlert className="text-sky-400 w-9 h-9" />
-              LexGrid <span className="text-slate-500 font-medium text-lg md:text-xl tracking-normal">| Corporate AI</span>
+              LexGrid <span className="text-slate-500 font-medium text-lg md:text-xl tracking-normal">Corporate</span>
             </h1>
             <p className="text-slate-400 text-sm md:text-base">Diagnóstico de Segurança e Oportunidades Tributárias Corporativas</p>
           </div>
