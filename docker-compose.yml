@@ -137,6 +137,8 @@ services:
     restart: always
     ports:
       - "${LEXGRID_FRONTEND_PORT:-3003}:3000"
+    environment:
+      - NEXT_PUBLIC_ENABLE_BETA_LOGIN=true
     volumes:
       - ./frontend/src:/app/src
       - ./frontend/public:/app/public

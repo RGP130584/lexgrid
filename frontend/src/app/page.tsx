@@ -581,6 +581,101 @@ export default function Dashboard() {
   const [spedFileUploaded, setSpedFileUploaded] = useState<string | null>(null);
   const [spedAuditResult, setSpedAuditResult] = useState<any>(null);
 
+  // Controle de Login Beta (Gated Access)
+  const isBetaLoginEnabled = process.env.NEXT_PUBLIC_ENABLE_BETA_LOGIN === 'true';
+  const [betaToken, setBetaToken] = useState<string | null>(
+    typeof window !== "undefined" ? localStorage.getItem("beta_token") : null
+  );
+  const [accessKey, setAccessKey] = useState("");
+  const [loginError, setLoginError] = useState<string | null>(null);
+  const [loginSuccessMessage, setLoginSuccessMessage] = useState<string | null>(null);
+
+  if (isBetaLoginEnabled && !betaToken) {
+    const handleLoginSubmit = async (e: React.FormEvent) => {
+      e.preventDefault();
+      if (accessKey.length !== 6) {
+        setLoginError("A chave deve conter exatamente 6 caracteres.");
+        return;
+      }
+      setLoginError(null);
+      setLoginSuccessMessage(null);
+      try {
+        const response = await fetch("http://localhost:8003/api/login/beta", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ key_hash: accessKey })
+        });
+        const data = await response.json();
+        if (!response.ok) {
+          setLoginError(data.detail || data.error || "Chave inválida.");
+        } else {
+          localStorage.setItem("beta_token", data.token);
+          setBetaToken(data.token);
+          setLoginSuccessMessage(`✅ Acesso Validado! Você tem ${data.uses_left} usos restantes.`);
+        }
+      } catch (err) {
+        setLoginError("Falha na comunicação com o servidor.");
+      }
+    };
+
+    const handleKeyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const val = e.target.value.toUpperCase().slice(0, 6);
+      setAccessKey(val);
+      setLoginError(null);
+    };
+
+    return (
+      <div className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center p-4 relative overflow-hidden font-sans">
+        {/* Ambient gradients */}
+        <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-sky-500/10 rounded-full blur-[100px] pointer-events-none"></div>
+        <div className="absolute bottom-1/4 right-1/4 translate-x-1/2 translate-y-1/2 w-80 h-80 bg-violet-500/10 rounded-full blur-[100px] pointer-events-none"></div>
+
+        <div className="w-full max-w-md bg-slate-900/85 border border-slate-800 p-8 rounded-2xl shadow-2xl backdrop-blur-md relative z-10 space-y-6">
+          <div className="text-center space-y-2">
+            <div className="inline-flex p-3 bg-sky-500/10 border border-sky-500/20 text-sky-400 rounded-xl mb-2">
+              <ShieldCheck className="w-8 h-8" />
+            </div>
+            <h2 className="text-2xl font-bold tracking-tight text-white">Acesso Beta Antecipado</h2>
+            <p className="text-sm text-slate-400">Insira sua Chave de Acesso para continuar no chassi do LexGrid.</p>
+          </div>
+
+          {loginSuccessMessage ? (
+            <div className="p-4 bg-emerald-950/30 border border-emerald-500/30 text-emerald-300 rounded-xl text-center text-sm font-medium animate-pulse">
+              {loginSuccessMessage}
+            </div>
+          ) : (
+            <form onSubmit={handleLoginSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <input 
+                  type="text" 
+                  value={accessKey}
+                  onChange={handleKeyChange}
+                  placeholder="Ex: K9X4M2"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-4 text-2xl text-center font-mono font-bold tracking-[8px] uppercase placeholder-slate-700 text-white focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500/20 transition-all"
+                />
+                {loginError && (
+                  <p className="text-xs text-rose-400 text-center font-medium animate-shake">{loginError}</p>
+                )}
+              </div>
+              
+              <button 
+                type="submit" 
+                className="w-full py-4 bg-sky-600 hover:bg-sky-500 active:bg-sky-700 text-white font-semibold rounded-xl text-sm transition-all shadow-lg shadow-sky-600/10 border border-sky-500/25 flex items-center justify-center gap-2 hover:scale-[1.01] active:scale-[0.99]"
+              >
+                <span>Validar Credencial</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </form>
+          )}
+
+          <div className="text-center">
+            <span className="text-[10px] font-mono text-slate-500 tracking-wider uppercase">LexGrid Security Shielded</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const handleSpedUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -593,11 +688,27 @@ export default function Dashboard() {
     formData.append("cnpj", result?.cnpj || "");
     formData.append("file", file);
     
+    const token = typeof window !== "undefined" ? localStorage.getItem("beta_token") : null;
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+    
     try {
-      const response = await fetch("/api/cnpj/upload-sped", {
+      const response = await fetch("http://localhost:8003/api/v1/cnpj/upload-sped", {
         method: "POST",
+        headers: headers,
         body: formData
       });
+      if (response.status === 401 || response.status === 403) {
+        localStorage.removeItem("beta_token");
+        setBetaToken(null);
+        setSpedAuditResult({
+          status: "error",
+          message: "Sessão expirada. Por favor, valide sua chave de acesso novamente."
+        });
+        return;
+      }
       if (response.ok) {
         const updatedResult = await response.json();
         setResult(updatedResult);
@@ -655,8 +766,20 @@ export default function Dashboard() {
   };
 
   const checkAPI = async () => {
+    const token = typeof window !== "undefined" ? localStorage.getItem("beta_token") : null;
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+    
     try {
-      const res = await fetch("http://localhost:8003/health");
+      const res = await fetch("http://localhost:8003/health", { headers });
+      if (res.status === 401 || res.status === 403) {
+        localStorage.removeItem("beta_token");
+        setBetaToken(null);
+        setStatus("Sessão expirada. Por favor, valide sua chave novamente.");
+        return;
+      }
       const data = await res.json();
       setStatus(`Conectado: ${data.system} (v${data.version}) - Status: ${data.status}`);
     } catch (err) {
@@ -670,9 +793,23 @@ export default function Dashboard() {
     setLoading(true);
     setResult(null);
     setShowDiagnostics(false);
+    
+    const token = typeof window !== "undefined" ? localStorage.getItem("beta_token") : null;
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+    
     try {
       const cleanedCnpj = cnpj.replace(/\D/g, "");
-      const res = await fetch(`http://localhost:8003/api/v1/cnpj/${cleanedCnpj}`);
+      const res = await fetch(`http://localhost:8003/api/v1/cnpj/${cleanedCnpj}`, { headers });
+      if (res.status === 401 || res.status === 403) {
+        localStorage.removeItem("beta_token");
+        setBetaToken(null);
+        setStatus("Sessão expirada ou chave esgotada. Por favor, valide sua chave novamente.");
+        setLoading(false);
+        return;
+      }
       if (res.ok) {
         let data = await res.json();
         

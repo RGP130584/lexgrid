@@ -1,24 +1,39 @@
-from fastapi import Request, HTTPException, Security
-from fastapi.security import APIKeyHeader, APIKeyQuery
+from fastapi import Request, HTTPException, Security, Depends
+from fastapi.security import APIKeyHeader, APIKeyQuery, HTTPBearer, HTTPAuthorizationCredentials
 from infrastructure.database.db_connection import get_db_connection
+from app.core.security.jwt import decode_access_token
 import psycopg2
 
 X_ACCESS_KEY_HEADER = APIKeyHeader(name="X-Access-Key", auto_error=False)
 ACCESS_KEY_QUERY = APIKeyQuery(name="key", auto_error=False)
+HTTP_BEARER = HTTPBearer(auto_error=False)
 
 def verify_access_key(
     header_key: str = Security(X_ACCESS_KEY_HEADER),
-    query_key: str = Security(ACCESS_KEY_QUERY)
-) -> str:
+    query_key: str = Security(ACCESS_KEY_QUERY),
+    bearer_token: HTTPAuthorizationCredentials = Security(HTTP_BEARER)
+) -> dict:
     """
-    Valida a chave de acesso (via Header X-Access-Key ou Query Param ?key).
-    Retorna a chave se for valida e incrementa o contador de uso.
+    Valida a sessao (via Token JWT Bearer) ou consome uma chave de acesso (via Header/Query).
+    Retorna o payload/sessao da autenticacao se for valida.
     """
+    # 1. Tenta autenticar por JWT Bearer Token (Sessao Ativa)
+    if bearer_token:
+        token = bearer_token.credentials
+        payload = decode_access_token(token)
+        if payload:
+            return payload
+        raise HTTPException(
+            status_code=401,
+            detail="Token de sessao invalido ou expirado. Facam login novamente."
+        )
+
+    # 2. Tenta autenticar consumindo uma chave de acesso
     key = header_key or query_key
     if not key:
         raise HTTPException(
             status_code=401,
-            detail="Chave de acesso (Access Key) e obrigatoria. Use o cabecalho X-Access-Key ou o parametro ?key."
+            detail="Credencial obrigatoria. Forneca um Bearer Token de sessao, cabecalho X-Access-Key ou parametro ?key."
         )
         
     if len(key) != 6:
@@ -30,12 +45,13 @@ def verify_access_key(
     try:
         with get_db_connection() as conn:
             with conn.cursor() as cur:
-                # Busca a chave ativa e com saldo de usos
+                # SELECT ... FOR UPDATE para lock atomico na transacao
                 cur.execute(
                     """
-                    SELECT is_active, current_uses, max_uses 
+                    SELECT id, key_hash, max_uses, current_uses, is_active 
                     FROM access_keys 
-                    WHERE key_hash = %s
+                    WHERE key_hash = %s 
+                    FOR UPDATE
                     """,
                     (key,)
                 )
@@ -47,7 +63,7 @@ def verify_access_key(
                         detail="Chave de acesso nao encontrada ou invalida."
                     )
                     
-                is_active, current_uses, max_uses = res
+                key_id, kh, max_uses, current_uses, is_active = res
                 
                 if not is_active:
                     raise HTTPException(
@@ -61,7 +77,6 @@ def verify_access_key(
                         detail="Limite de consultas desta chave de acesso atingido."
                     )
                     
-                # Incrementa o contador de usos e desativa se atingir o limite
                 new_uses = current_uses + 1
                 should_deactivate = new_uses >= max_uses
                 
@@ -69,23 +84,21 @@ def verify_access_key(
                     """
                     UPDATE access_keys 
                     SET current_uses = %s, is_active = %s 
-                    WHERE key_hash = %s
+                    WHERE id = %s
                     """,
-                    (new_uses, not should_deactivate, key)
+                    (new_uses, not should_deactivate, key_id)
                 )
             conn.commit()
             
-        return key
+        return {"role": "beta_tester", "key_used": key}
     except HTTPException:
         raise
     except Exception as e:
-        # Fallback de seguranca caso o banco de dados falhe
-        print(f"[ACCESS KEY] Erro ao validar chave de acesso no banco: {e}")
-        # Chaves mockadas em memoria caso o banco esteja indisponivel
+        print(f"[ACCESS KEY] Erro ao validar no banco: {e}")
         MOCK_KEYS = {"LXG123": 5, "ADM001": 100, "DEV777": 10}
         if key in MOCK_KEYS:
-            return key
+            return {"role": "beta_tester", "key_used": key}
         raise HTTPException(
             status_code=500,
-            detail="Erro de infraestrutura ao validar a chave de acesso."
+            detail="Erro de infraestrutura ao autenticar."
         )

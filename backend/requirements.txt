@@ -10,3 +10,4 @@ hvac>=2.1.0
 redis>=7.4.0
 qdrant-client>=1.18.0
 requests>=2.31.0
+PyJWT>=2.8.0
