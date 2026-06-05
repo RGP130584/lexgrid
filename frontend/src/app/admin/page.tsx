@@ -19,7 +19,8 @@ import {
   User as UserIcon,
   LogOut,
   ShieldAlert,
-  AlertTriangle
+  AlertTriangle,
+  Edit2
 } from "lucide-react";
 
 interface AccessKey {
@@ -48,6 +49,9 @@ export default function AdminDashboard() {
   const [copiedKeyId, setCopiedKeyId] = useState<number | null>(null);
   const [copiedNewKey, setCopiedNewKey] = useState(false);
   const [showSensitive, setShowSensitive] = useState(true);
+
+  const [editingKeyId, setEditingKeyId] = useState<number | null>(null);
+  const [editingMaxUsesValue, setEditingMaxUsesValue] = useState<number>(5);
 
   const API_BASE_URL = "http://localhost:8003/api";
 
@@ -119,6 +123,32 @@ export default function AdminDashboard() {
       );
     } catch (err: any) {
       alert(err.message || "Erro ao alternar status.");
+    }
+  };
+
+  const handleUpdateMaxUses = async (keyId: number, newMaxUses: number) => {
+    if (newMaxUses < 1) {
+      alert("O limite de usos deve ser pelo menos 1.");
+      return;
+    }
+    try {
+      const res = await fetch(`${API_BASE_URL}/admin-control/keys/${keyId}/max-uses`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ max_uses: newMaxUses })
+      });
+      if (!res.ok) {
+        throw new Error("Erro ao atualizar o limite de usos.");
+      }
+      const data = await res.json();
+      
+      // Update local state
+      setKeys(prev => 
+        prev.map(k => k.id === keyId ? { ...k, max_uses: data.max_uses, is_active: data.is_active } : k)
+      );
+      setEditingKeyId(null);
+    } catch (err: any) {
+      alert(err.message || "Erro ao atualizar limite.");
     }
   };
 
@@ -531,22 +561,74 @@ export default function AdminDashboard() {
                             </button>
                           </td>
                           <td className="px-6 py-4">
-                            <div className="w-full max-w-[180px] space-y-1">
-                              <div className="flex justify-between text-xs font-mono">
-                                <span className={isFull ? "text-rose-400 font-bold" : "text-slate-300"}>
-                                  {k.current_uses} / {k.max_uses}
-                                </span>
-                                <span className="text-slate-500">
-                                  {isFull ? "Esgotado" : `${k.max_uses - k.current_uses} rest.`}
-                                </span>
+                            {editingKeyId === k.id ? (
+                              <div className="w-full max-w-[180px] space-y-1">
+                                <div className="flex items-center gap-1.5 justify-between">
+                                  <div className="flex items-center gap-1 text-xs font-mono">
+                                    <span className="text-slate-305">{k.current_uses}</span>
+                                    <span className="text-slate-650">/</span>
+                                    <input
+                                      type="number"
+                                      min="1"
+                                      value={editingMaxUsesValue}
+                                      onChange={(e) => setEditingMaxUsesValue(parseInt(e.target.value) || 1)}
+                                      className="w-12 bg-slate-950 border border-slate-800 rounded px-1.5 py-0.5 text-xs text-center font-bold font-mono text-white focus:outline-none focus:border-sky-500"
+                                    />
+                                  </div>
+                                  <div className="flex items-center gap-1">
+                                    <button
+                                      onClick={() => handleUpdateMaxUses(k.id, editingMaxUsesValue)}
+                                      className="p-1 hover:bg-slate-800 text-emerald-400 hover:text-emerald-300 rounded transition-all"
+                                      title="Confirmar"
+                                    >
+                                      <Check className="w-3.5 h-3.5" />
+                                    </button>
+                                    <button
+                                      onClick={() => setEditingKeyId(null)}
+                                      className="p-1 hover:bg-slate-800 text-rose-400 hover:text-rose-300 rounded transition-all"
+                                      title="Cancelar"
+                                    >
+                                      <X className="w-3.5 h-3.5" />
+                                    </button>
+                                  </div>
+                                </div>
+                                <div className="w-full h-1.5 bg-slate-950 rounded-full overflow-hidden border border-slate-900/80">
+                                  <div 
+                                    className={`h-full rounded-full transition-all duration-300 ${progressColor}`}
+                                    style={{ width: `${Math.min(percentage, 100)}%` }}
+                                  ></div>
+                                </div>
                               </div>
-                              <div className="w-full h-1.5 bg-slate-950 rounded-full overflow-hidden border border-slate-900/80">
-                                <div 
-                                  className={`h-full rounded-full transition-all duration-300 ${progressColor}`}
-                                  style={{ width: `${Math.min(percentage, 100)}%` }}
-                                ></div>
+                            ) : (
+                              <div className="w-full max-w-[180px] space-y-1">
+                                <div className="flex justify-between items-center text-xs font-mono">
+                                  <div className="flex items-center gap-1">
+                                    <span className={isFull ? "text-rose-400 font-bold" : "text-slate-300"}>
+                                      {k.current_uses} / {k.max_uses}
+                                    </span>
+                                    <button
+                                      onClick={() => {
+                                        setEditingKeyId(k.id);
+                                        setEditingMaxUsesValue(k.max_uses);
+                                      }}
+                                      className="p-0.5 text-slate-500 hover:text-sky-400 rounded transition-colors"
+                                      title="Editar Limite"
+                                    >
+                                      <Edit2 className="w-3 h-3" />
+                                    </button>
+                                  </div>
+                                  <span className="text-slate-500">
+                                    {isFull ? "Esgotado" : `${k.max_uses - k.current_uses} rest.`}
+                                  </span>
+                                </div>
+                                <div className="w-full h-1.5 bg-slate-950 rounded-full overflow-hidden border border-slate-900/80">
+                                  <div 
+                                    className={`h-full rounded-full transition-all duration-300 ${progressColor}`}
+                                    style={{ width: `${Math.min(percentage, 100)}%` }}
+                                  ></div>
+                                </div>
                               </div>
-                            </div>
+                            )}
                           </td>
                           <td className="px-6 py-4 text-xs font-mono text-slate-400">
                             {k.created_at ? new Date(k.created_at).toLocaleString("pt-BR", {

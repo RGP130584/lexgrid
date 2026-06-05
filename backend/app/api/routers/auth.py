@@ -142,3 +142,44 @@ async def toggle_key(key_id: int):
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro ao alternar status da chave: {e}")
+
+class UpdateMaxUsesRequest(BaseModel):
+    max_uses: int = Field(..., ge=1)
+
+@router.post("/admin-control/keys/{key_id}/max-uses")
+async def update_max_uses(key_id: int, payload: UpdateMaxUsesRequest):
+    try:
+        with get_db_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT current_uses FROM access_keys WHERE id = %s", (key_id,))
+                res = cur.fetchone()
+                if not res:
+                    raise HTTPException(status_code=404, detail="Chave nao encontrada.")
+                current_uses = res[0]
+                
+                is_active = current_uses < payload.max_uses
+                
+                cur.execute(
+                    """
+                    UPDATE access_keys 
+                    SET max_uses = %s, is_active = %s 
+                    WHERE id = %s 
+                    RETURNING max_uses, is_active
+                    """,
+                    (payload.max_uses, is_active, key_id)
+                )
+                row = cur.fetchone()
+                if not row:
+                    raise HTTPException(status_code=404, detail="Chave nao encontrada.")
+                updated_max_uses, updated_is_active = row
+            conn.commit()
+        return {
+            "success": True, 
+            "max_uses": updated_max_uses, 
+            "is_active": updated_is_active
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erro ao atualizar limite de usos: {e}")
+
