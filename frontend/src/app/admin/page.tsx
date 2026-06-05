@@ -20,7 +20,8 @@ import {
   LogOut,
   ShieldAlert,
   AlertTriangle,
-  Edit2
+  Edit2,
+  Trash2
 } from "lucide-react";
 
 interface AccessKey {
@@ -149,6 +150,24 @@ export default function AdminDashboard() {
       setEditingKeyId(null);
     } catch (err: any) {
       alert(err.message || "Erro ao atualizar limite.");
+    }
+  };
+
+  const handleDeleteKey = async (keyId: number) => {
+    if (!confirm("Deseja realmente deletar esta chave de acesso de forma permanente?")) {
+      return;
+    }
+    try {
+      const res = await fetch(`${API_BASE_URL}/admin-control/keys/${keyId}`, {
+        method: "DELETE"
+      });
+      if (!res.ok) {
+        throw new Error("Não foi possível excluir a chave.");
+      }
+      // Update local state by filtering it out
+      setKeys(prev => prev.filter(k => k.id !== keyId));
+    } catch (err: any) {
+      alert(err.message || "Erro ao deletar chave.");
     }
   };
 
@@ -657,6 +676,15 @@ export default function AdminDashboard() {
                                     <span>Copiar</span>
                                   </>
                                 )}
+                              </button>
+                              
+                              <button
+                                onClick={() => handleDeleteKey(k.id)}
+                                className="p-2 text-rose-400 hover:text-white hover:bg-rose-500/10 border border-slate-900 hover:border-rose-950 rounded-lg text-xs font-medium inline-flex items-center gap-1 transition-all"
+                                title="Deletar Chave"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                                <span>Excluir</span>
                               </button>
                             </div>
                           </td>

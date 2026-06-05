@@ -183,3 +183,20 @@ async def update_max_uses(key_id: int, payload: UpdateMaxUsesRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro ao atualizar limite de usos: {e}")
 
+@router.delete("/admin-control/keys/{key_id}")
+async def delete_key(key_id: int):
+    try:
+        with get_db_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute("DELETE FROM access_keys WHERE id = %s RETURNING id", (key_id,))
+                res = cur.fetchone()
+                if not res:
+                    raise HTTPException(status_code=404, detail="Chave nao encontrada.")
+            conn.commit()
+        return {"success": True, "message": "Chave deletada com sucesso."}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erro ao deletar chave: {e}")
+
+
