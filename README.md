@@ -66,9 +66,40 @@ docker compose up -d --build
 ```
 
 ### 3. URLs e Pontos de Acesso
-- **Dashboard Web (Frontend):** `http://localhost:3003`
+- **Dashboard Web (Frontend):** `http://localhost:3003` (Acesso restrito por Chave Beta se ativo).
+- **Painel Administrativo:** `http://localhost:3003/admin` (Credenciais: Usuário `Ricardo` / Senha `LEX@123`).
 - **Documentação Interativa (Swagger Docs):** `http://localhost:8003/docs`
 - **Painel do Vault (Segredos):** `http://localhost:8203` (Token de dev local: `lexgrid_temp_dev_token`)
+
+---
+
+## 🔐 Controle de Acesso Beta & Painel Admin
+
+O LexGrid conta com um sistema integrado de controle de acesso para usuários em fase de homologação (Beta Access) e gestão centralizada de chaves de licença temporárias.
+
+### Acesso Beta (Gated Access)
+Quando a Feature Flag `NEXT_PUBLIC_ENABLE_BETA_LOGIN=true` está configurada:
+- A tela inicial do Dashboard é substituída por uma tela de login de homologação.
+- O usuário deve fornecer uma **Chave de Acesso Beta** de 6 caracteres válida.
+- Cada chave de acesso possui um limite máximo de consultas (`max_uses`).
+- Ao validar uma chave correta, o sistema emite um token de sessão assinado via JWT (expiração de 2 horas), permitindo consultas ilimitadas no dashboard durante o período ativo sem consumir novas quotas da chave.
+- Chaves padrão automáticas inseridas no banco na primeira execução:
+  - `LXG123` (limite: 5 utilizações)
+  - `ADM001` (limite: 100 utilizações)
+  - `DEV777` (limite: 10 utilizações)
+
+### Painel Administrativo (`/admin`)
+Desenvolvido em Next.js para gerenciamento visual completo das licenças de homologação.
+- **Acesso Restrito:** A rota `/admin` é bloqueada por um formulário de login administrativo:
+  - **Usuário:** `Ricardo`
+  - **Senha:** `LEX@123`
+- **Recursos Disponíveis:**
+  - **Métricas Consolidadas:** Banner de estatísticas contendo total de chaves geradas, chaves ativas e soma acumulada de utilizações de todas as chaves.
+  - **Gerador de Novas Licenças:** Criação rápida de códigos de acesso de 6 caracteres (filtrados contra ambiguidades visuais como `O`, `0`, `I`, `l`, `1`).
+  - **Edição Inline de Quotas:** Permite alterar o limite de utilizações diretamente na tabela. O sistema reativa automaticamente chaves inativas caso seu limite de quota seja elevado acima do uso atual.
+  - **Ativação / Desativação Instantânea:** Chave do tipo *switch* para suspender ou ativar chaves temporariamente.
+  - **Exclusão Física:** Botão para deletar de forma permanente as chaves no banco de dados.
+  - **Segurança Visual:** Botão para mascarar/revelar chaves na tela, além de cópia rápida para área de transferência.
 
 ---
 
