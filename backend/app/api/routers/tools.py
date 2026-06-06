@@ -2,9 +2,10 @@ from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel, Field
 from typing import Dict, Any, List
 from app.services.llm_adapter import execute_ai_tool
+from app.core.security.rate_limit import check_ai_rate_limit, beta_access_bypass
 import json
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(check_ai_rate_limit), Depends(beta_access_bypass)])
 
 class AnalyzeRiskRequest(BaseModel):
     cnpjData: Dict[str, Any] = Field(..., description="Dados cadastrais e gerais do CNPJ")
