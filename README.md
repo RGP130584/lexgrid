@@ -57,6 +57,31 @@ O LexGrid implementa regras de governança e blindagem ativa:
      - `POST /api/tools/generate-swot`: Recebe CNPJ e riscos do sistema e gera os 4 quadrantes da Matriz SWOT (Forces, Weaknesses, Opportunities, Threats) em JSON.
      - `POST /api/tools/extract-ncm`: Extrai semântica de produtos e seus NCMs (8 dígitos) a partir de notas fiscais ou textos brutos.
 
+   #### 🖥️ Exemplo de Integração no Frontend (React/Vue)
+   ```javascript
+   async function handleGerarSwot() {
+       setLoading(true);
+       try {
+           const res = await fetch('/api/tools/generate-swot', {
+               method: 'POST',
+               headers: { 'Content-Type': 'application/json' },
+               body: JSON.stringify({
+                   cnpjData: cliente.dadosCadastrais,
+                   riscosMapeados: cliente.riscos
+               })
+           });
+           const json = await res.json();
+           if (json.success) {
+               setSwotDashboard(json.data); // Atualiza a UI imediatamente com forces, weaknesses, opportunities, threats
+           }
+       } catch (error) {
+           alert("Erro ao processar análise inteligente.");
+       } finally {
+           setLoading(false);
+       }
+   }
+   ```
+
 ---
 
 ## ⚙️ Como Executar o Projeto Localmente
