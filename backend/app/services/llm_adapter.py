@@ -3,9 +3,10 @@ import httpx
 import json
 from typing import Dict, Any, Union
 
+
 async def execute_ai_tool(
-    system_prompt: str, 
-    user_payload: str, 
+    system_prompt: str,
+    user_payload: str,
     require_json: bool = True
 ) -> Union[Dict[str, Any], str]:
     """
@@ -17,7 +18,9 @@ async def execute_ai_tool(
     model_name = os.getenv("LLM_MODEL", "llama3-70b-8192")
 
     if not api_key or "sua-chave" in api_key:
-        raise ValueError("LLM_API_KEY não configurada ou inválida nas variáveis de ambiente.")
+        raise ValueError(
+            "LLM_API_KEY não configurada ou inválida no ambiente."
+        )
 
     # Constrói o endpoint de chat completions
     url = f"{base_url.rstrip('/')}/chat/completions"
@@ -45,10 +48,13 @@ async def execute_ai_tool(
             response.raise_for_status()
             data = response.json()
             output = data["choices"][0]["message"]["content"]
-            
+
             if require_json:
                 return json.loads(output)
             return output
     except Exception as e:
         print(f"[LLM ADAPTER] Falha crítica na integração de IA: {e}")
-        raise RuntimeError(f"Falha ao processar a ferramenta de Inteligência Artificial: {e}")
+        raise RuntimeError(
+            f"Falha ao processar a ferramenta de IA: {e}"
+        )
+
