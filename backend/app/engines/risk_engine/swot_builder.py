@@ -1,6 +1,7 @@
 import httpx
 import os
 from typing import List, Dict, Any
+from app.services.llm_adapter import execute_ai_tool
 
 class SWOTMitigationEngine:
     @classmethod
@@ -121,16 +122,13 @@ class SWOTMitigationEngine:
     ) -> str:
         """
         Orquestra a geração do Parecer de Mitigação:
-        Tenta usar o Ollama local e, se indisponível, aplica um fallback estático robusto.
+        Tenta usar a API Cloud via LLM Adapter e, se indisponível, aplica um fallback estático robusto.
         """
-        ollama_host = os.getenv("OLLAMA_HOST", "http://ollama:11434")
+        system_prompt = (
+            "Você é o Gabriel, um analista de riscos corporativos sênior e agente de IA especialista da LexGrid em compliance e direito tributário brasileiro."
+        )
         
-        # Garante o esquema HTTP se não fornecido
-        if ollama_host and not ollama_host.startswith("http"):
-            ollama_host = f"http://{ollama_host}"
-
-        prompt = (
-            "Você é o Gabriel, um analista de riscos corporativos sênior e agente de IA especialista da LexGrid em compliance e direito tributário brasileiro.\n"
+        user_payload = (
             f"Gere um Parecer Executivo de Mitigação de Riscos de alta qualidade em formato Markdown para o CNPJ {cnpj}.\n\n"
             f"Dados de Risco da Empresa:\n"
             f"- Score Global de Risco: {scores['score_global']}/100 (onde 100 é o melhor cenário/saudável)\n"
@@ -153,25 +151,15 @@ class SWOTMitigationEngine:
         )
 
         try:
-            async with httpx.AsyncClient(timeout=4.0) as client:
-                response = await client.post(
-                    f"{ollama_host}/api/generate",
-                    json={
-                        "model": "qwen3.6",
-                        "prompt": prompt,
-                        "stream": False
-                    }
-                )
-                if response.status_code == 200:
-                    dados = response.json()
-                    parecer = dados.get("response", "")
-                    if parecer:
-                        return parecer.strip()
+            parecer = await execute_ai_tool(system_prompt, user_payload, require_json=False)
+            if parecer:
+                return parecer.strip()
         except Exception as e:
-            # Silenciar logs na esteira local caso o Docker esteja offline
+            # Silenciar logs na esteira local, caindo no fallback
+            print(f"[SWOT Builder] IA Cloud falhou ou nao esta configurada, aplicando fallback. Detalhe: {e}")
             pass
 
-        # --- FALLBACK COGNITIVO ESTÁTICO (Caso Ollama esteja offline) ---
+        # --- FALLBACK COGNITIVO ESTÁTICO (Caso IA esteja offline) ---
         return cls._generate_fallback_opinion(scores, swot, capital_social)
 
     @classmethod

@@ -45,7 +45,7 @@ Testa:
 - ✓ Conexão PostgreSQL
 - ✓ Conexão Dragonfly (Redis)
 - ✓ Conexão Qdrant
-- ✓ Disponibilidade Ollama
+- ✓ Disponibilidade do LLM Cloud Adapter (se chave configurada)
 
 **Execução manual:**
 ```bash

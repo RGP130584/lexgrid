@@ -18,7 +18,7 @@ O ecossistema é conteinerizado em microsserviços seguros via *Docker*, organiz
 | **Memória Longa Relacional**| PostgreSQL 16 (Hardened) | `55433` | Armazenamento de logs estruturados, cadastros e obrigações. |
 | **Memória Semântica** | Qdrant | `56333` | Banco de dados vetorial para contextualização semântica (RAG). |
 | **Memória Curta (Cache)** | DragonflyDB | `56379` | Cache em memória de alta performance compatível com Redis. |
-| **Motor de IA Local** | Ollama | `51434` | Execução local de LLMs open-source (Qwen-Coder/Nomic-Embed). |
+| **Provedor de IA (Cloud)** | API OpenAI/Groq (Adapter) | - | Chamadas cognitivas na nuvem via LLM Adapter estruturado. |
 
 ---
 
@@ -49,6 +49,13 @@ O LexGrid implementa regras de governança e blindagem ativa:
 4. **Compliance, Riscos & Fontes**:
    - Varredura e apresentação de débitos ativos consolidados junto à **Dívida Ativa da União (PGFN)**.
    - Status de conexão ativa e auditoria das fontes de consulta governamentais federais e estaduais.
+5. **Módulos de IA Desacoplados (SaaS Cloud Tools)**:
+   - Substituição completa da IA local (Ollama) por uma arquitetura orientada a serviços (Cloud Tools).
+   - Camada de abstração centralizada (LLM Adapter) compatível com o padrão OpenAI (Groq, OpenAI, Anthropic, etc.).
+   - Endpoints cognitivos independentes, rápidos e validados por schema estrito:
+     - `POST /api/tools/analyze-risk`: Recebe dados financeiros e de chassi e gera pontuação de risco e parecer analítico.
+     - `POST /api/tools/generate-swot`: Recebe CNPJ e riscos do sistema e gera os 4 quadrantes da Matriz SWOT (Forces, Weaknesses, Opportunities, Threats) em JSON.
+     - `POST /api/tools/extract-ncm`: Extrai semântica de produtos e seus NCMs (8 dígitos) a partir de notas fiscais ou textos brutos.
 
 ---
 
